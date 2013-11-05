@@ -1,10 +1,15 @@
 package vpc.cdas.fotovision;
 
 import java.awt.BorderLayout;
+import java.awt.FileDialog;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -13,11 +18,6 @@ import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
 
 public class VentanaPrincipal extends JFrame {
-	
-	private JMenuBar menuPrincipal;
-	private JMenu archivo, operaciones, ver, ayuda;
-	private JMenuItem actAbrir, actGuardar, actCerrar;
-	
 	
 	public VentanaPrincipal() {
 		
@@ -28,106 +28,74 @@ public class VentanaPrincipal extends JFrame {
 		initComponents();
 	}
 	
+	private void cargarFichero() {
+		
+		// Dialogo para la carga de un fichero
+		FileDialog fd = new FileDialog(this, "Elige un fichero", FileDialog.LOAD);
+		fd.setFile("*.tiff");
+		fd.setVisible(true);
+		String filename = fd.getFile();
+		
+		System.out.println(filename);
+	}
+	
 	private void initComponents() {
 		
-		//JMenu aux = new JMenu("Archivo");
+		// Creamos la barra del menú principal
+		JMenuBar menuPrincipal = new JMenuBar();
 		
-		setMenuPrincipal(new JMenuBar());
+		// Creamos las secciones del menú
+		JMenu archivoMenu = new JMenu("Archivo");
+		JMenu imagenMenu = new JMenu("Imagen");
+		JMenu transformacionesMenu = new JMenu("Transformaciones");
+		JMenu verMenu = new JMenu("Ver");
+		JMenu ayudaMenu = new JMenu("Ayuda");
 		
-		setArchivo(new JMenu("Archivo"));
-		setOperaciones(new JMenu("Operaciones"));
-		setVer(new JMenu("Ver"));
-		setAyuda(new JMenu("Ayuda"));
+		// Creamos los items (acciones) del menu ARCHIVO
 		
-		setActAbrir(new JMenuItem("Abrir"));		
-		setActGuardar(new JMenuItem("Guardar"));
-		setActCerrar(new JMenuItem("Cerrar"));
+		// ABRIR
+		JMenuItem accionAbrir = new JMenuItem("Abrir");
+		accionAbrir.setMnemonic('O');
+		accionAbrir.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_O, InputEvent.CTRL_MASK));
+		accionAbrir.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("Abrir fichero");
+				cargarFichero();
+			}
+		});
 		
-		getActAbrir().setMnemonic('O');
-		getActAbrir().setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_O, InputEvent.CTRL_MASK));
+		// GUARDAR
+		JMenuItem accionGuardar = new JMenuItem("Guardar");
+		accionGuardar.setMnemonic('S');
+		accionGuardar.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_S, InputEvent.CTRL_MASK));
 		
-		getActGuardar().setMnemonic('S');
-		getActGuardar().setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_S, InputEvent.CTRL_MASK));
+		// CERRAR
+		JMenuItem accionCerrar = new JMenuItem("Cerrar");
+		accionCerrar.setMnemonic('Q');
+		accionCerrar.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_Q, InputEvent.CTRL_MASK));
 		
+		// Añadimos las opciones a cada seccion
 		
-		getArchivo().add(getActAbrir());
-		getArchivo().add(getActGuardar());
-		getArchivo().add(new JSeparator());
-		getArchivo().add(getActCerrar());
+		archivoMenu.add(accionAbrir);
+		archivoMenu.add(accionGuardar);
+		archivoMenu.add(new JSeparator());
+		archivoMenu.add(accionCerrar);
 		
-		getMenuPrincipal().add(getArchivo());
-		getMenuPrincipal().add(getOperaciones());
-		getMenuPrincipal().add(getVer());
-		getMenuPrincipal().add(getAyuda());
+		// Añadimos las secciones a la barra de menú
+		menuPrincipal.add(archivoMenu);
+		menuPrincipal.add(imagenMenu);
+		menuPrincipal.add(transformacionesMenu);
+		menuPrincipal.add(verMenu);
+		menuPrincipal.add(ayudaMenu);
 		
+		/*
+		JDialog otraVentana = new JDialog(this, "Imagen");
+		otraVentana.getContentPane().add(new JLabel("Imagen"));
+		otraVentana.pack();
+		//otraVentana.setVisible(true);
+		*/
 		
-		add(getMenuPrincipal(), BorderLayout.NORTH);
-	}
-	
-	public JMenuItem getActGuardar() {
-		return actGuardar;
-	}
-
-	public void setActGuardar(JMenuItem actGuardar) {
-		this.actGuardar = actGuardar;
-	}
-
-	public JMenuItem getActAbrir() {
-		return actAbrir;
-	}
-
-	public void setActAbrir(JMenuItem actAbrir) {
-		this.actAbrir = actAbrir;
-	}
-
-	public JMenuItem getActCerrar() {
-		return actCerrar;
-	}
-
-	public void setActCerrar(JMenuItem actCerrar) {
-		this.actCerrar = actCerrar;
-	}
-
-	public JMenuBar getMenuPrincipal() {
-		return menuPrincipal;
-	}
-
-	public void setMenuPrincipal(JMenuBar menuPrincipal) {
-		this.menuPrincipal = menuPrincipal;
-	}
-
-	public JMenu getArchivo() {
-		return archivo;
-	}
-
-	public void setArchivo(JMenu archivo) {
-		this.archivo = archivo;
-	}
-
-	public JMenu getOperaciones() {
-		return operaciones;
-	}
-
-	public void setOperaciones(JMenu operaciones) {
-		this.operaciones = operaciones;
-	}
-
-	public JMenu getVer() {
-		return ver;
-	}
-
-	public void setVer(JMenu ver) {
-		this.ver = ver;
-	}
-
-	public JMenu getAyuda() {
-		return ayuda;
-	}
-
-	public void setAyuda(JMenu ayuda) {
-		this.ayuda = ayuda;
-	}
-	
-	
-	
+		add(menuPrincipal, BorderLayout.NORTH);
+	}	
 }
