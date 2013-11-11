@@ -4,22 +4,35 @@ import java.awt.BorderLayout;
 import java.awt.FileDialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
 
 public class VentanaPrincipal extends JFrame {
 	
+	private ArrayList<BufferedImage> imagenes;
+	private BufferedImage imagenActual;
+	
 	public VentanaPrincipal() {
+		
+		setImagenes(new ArrayList<BufferedImage>());
+		setImagenActual(null);
 		
 		setTitle("FotoVision++");
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -28,15 +41,31 @@ public class VentanaPrincipal extends JFrame {
 		initComponents();
 	}
 	
-	private void cargarFichero() {
+	/*
+	 * Abre un dialogo para buscar un fichero en el disco duro.
+	 * Devuelve un BufferedImage con la imagen que elige el usuario.
+	 */
+	private void cargarImagen() {
 		
-		// Dialogo para la carga de un fichero
+		BufferedImage imagen = null;
 		FileDialog fd = new FileDialog(this, "Elige un fichero", FileDialog.LOAD);
-		fd.setFile("*.tiff");
+		fd.setFile("*.bmp");
 		fd.setVisible(true);
-		String filename = fd.getFile();
 		
-		System.out.println(filename);
+		String nombreFichero = fd.getFile();
+		
+		if (nombreFichero != null) {
+			nombreFichero = fd.getDirectory() + nombreFichero;
+			
+			try {
+				imagen = ImageIO.read(new File(nombreFichero));
+			
+			} catch (IOException e) { }
+		}
+		
+		getImagenes().add(imagen);
+		VentanaImagen otraVentana = new VentanaImagen(this, getImagenes().size() - 1, imagen);
+		otraVentana.setVisible(true);
 	}
 	
 	private void initComponents() {
@@ -60,8 +89,7 @@ public class VentanaPrincipal extends JFrame {
 		accionAbrir.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("Abrir fichero");
-				cargarFichero();
+				cargarImagen();
 			}
 		});
 		
@@ -69,6 +97,13 @@ public class VentanaPrincipal extends JFrame {
 		JMenuItem accionGuardar = new JMenuItem("Guardar");
 		accionGuardar.setMnemonic('S');
 		accionGuardar.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_S, InputEvent.CTRL_MASK));
+		accionGuardar.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//System.out.println("Abrir fichero");
+				
+			}
+		});
 		
 		// CERRAR
 		JMenuItem accionCerrar = new JMenuItem("Cerrar");
@@ -89,13 +124,23 @@ public class VentanaPrincipal extends JFrame {
 		menuPrincipal.add(verMenu);
 		menuPrincipal.add(ayudaMenu);
 		
-		/*
-		JDialog otraVentana = new JDialog(this, "Imagen");
-		otraVentana.getContentPane().add(new JLabel("Imagen"));
-		otraVentana.pack();
-		//otraVentana.setVisible(true);
-		*/
-		
 		add(menuPrincipal, BorderLayout.NORTH);
-	}	
+	}
+	
+	public BufferedImage getImagenActual() {
+		return imagenActual;
+	}
+
+	public void setImagenActual(BufferedImage imagenActual) {
+		this.imagenActual = imagenActual;
+	}
+
+	public ArrayList<BufferedImage> getImagenes() {
+		return imagenes;
+	}
+
+	public void setImagenes(ArrayList<BufferedImage> imagenes) {
+		this.imagenes = imagenes;
+	}
+	
 }
