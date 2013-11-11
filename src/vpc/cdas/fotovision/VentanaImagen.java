@@ -62,8 +62,6 @@ public class VentanaImagen extends JDialog {
 			@Override
 			public void windowClosing(WindowEvent arg0) {
 				padre.getImagenes().remove(id);
-				System.out.println(padre.getImagenes().size());
-				
 			}
 			
 			@Override

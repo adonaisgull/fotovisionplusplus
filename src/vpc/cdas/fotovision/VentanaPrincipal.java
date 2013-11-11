@@ -57,6 +57,9 @@ public class VentanaPrincipal extends JFrame {
 			} catch (IOException e) { }
 		}
 		
+		// Convertimos a escala de grises
+		imagen = Transformaciones.escalaDeGrisesPAL(imagen);
+		
 		getImagenes().add(imagen);
 		VentanaImagen otraVentana = new VentanaImagen(this, getImagenes().size() - 1, imagen);
 		otraVentana.setVisible(true);
