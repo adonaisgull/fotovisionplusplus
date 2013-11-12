@@ -19,7 +19,8 @@ import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
 
 public class VentanaPrincipal extends JFrame {
-	
+
+	private static final long serialVersionUID = 1L;
 	private ArrayList<BufferedImage> imagenes;
 	private BufferedImage imagenActual;
 	

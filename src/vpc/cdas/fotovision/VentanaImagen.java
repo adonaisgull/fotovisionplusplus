@@ -8,10 +8,12 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+
 import javax.swing.JDialog;
 
 public class VentanaImagen extends JDialog {
-	
+
+	private static final long serialVersionUID = 1L;
 	static final int MARGEN = 13;
 	static final int DESFASE = 22;
 	static final int ESPACIO_VENTANA = 40;
@@ -80,6 +82,7 @@ public class VentanaImagen extends JDialog {
 		
 		//JLabel contenedorImagen = new JLabel();
 		//contenedorImagen.setIcon(new ImageIcon(imagen));
+		setLayout(null);
 		setSize(imagen.getWidth() + MARGEN * 2, imagen.getHeight() + DESFASE + MARGEN * 2);
 		//setResizable(false);
 		setLocation((id + 1) * ESPACIO_VENTANA, (id + 1) * ESPACIO_VENTANA);
