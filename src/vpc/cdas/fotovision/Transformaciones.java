@@ -180,6 +180,11 @@ public class Transformaciones {
 		LookUpTable lut = new LookUpTable();
 		for (double x = 0; x < LookUpTable.VAR_PIXELS; x++) {
 			double Vout = A * x + B;
+			if (Vout < 0) {
+				Vout = 0;
+			} else if (Vout > 255) {
+				Vout = 255;
+			}
 			int valor = (int) Math.round(Vout);
 			lut.set_valor((int) x, valor);
 		}

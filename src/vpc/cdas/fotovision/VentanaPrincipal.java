@@ -29,7 +29,8 @@ public class VentanaPrincipal extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private ArrayList<VentanaImagen> ventanasImagen;
 	private int ventanaActual;
-	private DialogTransformacionLineal dialog;
+	private DialogTransformacionLineal dialog_lineal;
+	private DialogBrilloContraste dialog_contrasteBrillo;
     private Tramos tramos;
 	
 	public VentanaPrincipal() {
@@ -93,22 +94,22 @@ public class VentanaPrincipal extends JFrame {
 	}
 	
 	public void transformacionLinealPorTramos() {
-        dialog = new DialogTransformacionLineal();
+        dialog_lineal = new DialogTransformacionLineal();
         JButton boton = new JButton("Aplicar");
         boton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent arg0) {
-                        int tr = dialog.get_tramos();
+                        int tr = dialog_lineal.get_tramos();
                         tramos = new Tramos(tr);
                         for (int i = 1; i < tramos.get_num_tramos(); i++) {
-                                tramos.set_tramo(i, dialog.get_x(i-1), dialog.get_y(i-1));
+                                tramos.set_tramo(i, dialog_lineal.get_x(i-1), dialog_lineal.get_y(i-1));
                         }
                         
                         abrirVentana(Transformaciones.transormacionLineal(getVentanasImagen().get(getVentanaActual()).getImagen(), tramos));
                 }
         });
-        dialog.add(boton);
-        dialog.setVisible(true);
+        dialog_lineal.add(boton);
+        dialog_lineal.setVisible(true);
 	}
 	
 	public void abrirVentana(BufferedImage imagen) {
@@ -116,7 +117,26 @@ public class VentanaPrincipal extends JFrame {
         VentanaImagen otraVentana = new VentanaImagen(this, getVentanasImagen().size(), imagen);
         getVentanasImagen().add(otraVentana);
         otraVentana.setVisible(true);
-}
+	}
+	
+	public void brilloContraste() {
+		double b = Transformaciones.brillo(getVentanasImagen().get(getVentanaActual()).getImagen());
+		double c = Transformaciones.contraste(getVentanasImagen().get(getVentanaActual()).getImagen());
+		dialog_contrasteBrillo = new DialogBrilloContraste(b, c);
+		JButton boton = new JButton("Aplicar brillo y contraste");
+        boton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                double brillo = dialog_contrasteBrillo.get_brillo();
+                double contraste = dialog_contrasteBrillo.get_contraste();
+                abrirVentana(Transformaciones.cambiarBrilloContraste
+                		(getVentanasImagen().get(getVentanaActual()).getImagen(), 
+                				contraste, brillo));
+            }
+        });
+        dialog_contrasteBrillo.add(boton);
+		dialog_contrasteBrillo.setVisible(true);
+	}
 	
 	private void initComponents() {
 		
@@ -199,6 +219,14 @@ public class VentanaPrincipal extends JFrame {
                         transformacionLinealPorTramos();
                 }
         });
+        
+        JMenuItem accionBrilloContraste = new JMenuItem("Brillo y Contraste");
+        accionBrilloContraste.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                        brilloContraste();
+                }
+        });
 		
 		
 		// Añadimos las opciones a cada seccion
@@ -211,6 +239,7 @@ public class VentanaPrincipal extends JFrame {
 		imagenMenu.add(accionSubimagen);
 		
 		transformacionesMenu.add(accionLinealTramos);
+		transformacionesMenu.add(accionBrilloContraste);
 		
 		// Añadimos las secciones a la barra de menú
 		menuPrincipal.add(archivoMenu);
