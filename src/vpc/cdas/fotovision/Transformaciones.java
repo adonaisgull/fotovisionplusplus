@@ -117,5 +117,58 @@ public class Transformaciones {
         }
         
         return copia;
+	}
+	
+	public static double brillo(BufferedImage imagen) {
+		double nu = 0;
+		double size = imagen.getWidth() * imagen.getHeight();
+		LookUpTable lut = calcularH(imagen);
+		for (int i = 0; i < LookUpTable.VAR_PIXELS; i++) {
+			double h = lut.get_valor(i);
+			nu = nu + (h * i);
+		}
+		nu = nu / size;
+		return nu;
+	}
+	
+	public static double contraste(BufferedImage imagen) {
+		double delta = 0;
+		double nu = brillo(imagen);
+		double size = imagen.getWidth() * imagen.getHeight();
+		LookUpTable lut = calcularH(imagen);
+		for (int i = 0; i < LookUpTable.VAR_PIXELS; i++) {
+			double y = i;
+			double h = lut.get_valor(i);
+			delta = delta + (h * Math.pow((y - nu), 2));
+		}
+		delta = delta / size;
+		delta = Math.sqrt(delta);
+		return delta;
+	}
+	
+	public static double entropia(BufferedImage imagen) {
+		double E = 0;
+		double size = imagen.getWidth() * imagen.getHeight();
+		LookUpTable lut = calcularH(imagen);
+		for (int i = 0; i < LookUpTable.VAR_PIXELS; i++) {
+			double h = lut.get_valor(i);
+			double p = h / size;
+			E = E + (p * (Math.log10(p) / Math.log10(2)));
+		}
+		return E;
+	}
+	
+	public static LookUpTable calcularH(BufferedImage imagen) {
+		LookUpTable lut = new LookUpTable();
+		lut.set_zero();
+		for (int x = 0; x < imagen.getWidth(); x++) {
+            for (int y = 0; y < imagen.getHeight(); y++) {
+            	Color color = new Color(imagen.getRGB(x, y));
+            	lut.incrementar(color.getRed());
+            }
+		}
+		return lut;
+	}
 }
-}
+
+

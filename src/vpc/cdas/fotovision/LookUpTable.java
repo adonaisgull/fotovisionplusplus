@@ -19,4 +19,14 @@ public class LookUpTable {
         public void set_valor(int posi, int valor) {
                 lut[posi] = valor;
         }
+        
+        public void set_zero() {
+        	for (int i = 0; i < VAR_PIXELS; i++) {
+                lut[i] = 0;
+        	}
+        }
+        
+        public void incrementar(int posi) {
+        	lut[posi]++;
+        }
 }
