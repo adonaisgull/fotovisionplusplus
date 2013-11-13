@@ -169,6 +169,30 @@ public class Transformaciones {
 		}
 		return lut;
 	}
+	
+	public static BufferedImage cambiarBrilloContraste(BufferedImage imagen,
+			double contraste, double brillo) {
+		BufferedImage copia = clona(imagen);
+		double brillo_actual = brillo(imagen);
+		double contraste_actual = contraste(imagen);
+		double A = contraste / contraste_actual;
+		double B = brillo - (A * brillo_actual);
+		LookUpTable lut = new LookUpTable();
+		for (double x = 0; x < LookUpTable.VAR_PIXELS; x++) {
+			double Vout = A * x + B;
+			int valor = (int) Math.round(Vout);
+			lut.set_valor((int) x, valor);
+		}
+		for (int x = 0; x < copia.getWidth(); x++) {
+            for (int y = 0; y < copia.getHeight(); y++) {
+                    Color color = new Color(copia.getRGB(x, y));
+                    int Vin = color.getRed();
+                    int Vout = lut.get_valor(Vin);
+                    copia.setRGB(x, y, new Color(Vout, Vout, Vout).getRGB());
+            }
+		}
+		return copia;
+	}
 }
 
 
