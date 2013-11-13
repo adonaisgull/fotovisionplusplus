@@ -1,7 +1,9 @@
 package vpc.cdas.fotovision;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FileDialog;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -10,7 +12,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+
 import javax.imageio.ImageIO;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -20,20 +24,45 @@ import javax.swing.KeyStroke;
 
 public class VentanaPrincipal extends JFrame {
 
+	// CAMBIAR ESTO PARA QUE ESTA CLASE CONTENGA UN ARRAY DE VENTANAS IMAGEN
+	
 	private static final long serialVersionUID = 1L;
-	private ArrayList<BufferedImage> imagenes;
-	private BufferedImage imagenActual;
+	private ArrayList<VentanaImagen> ventanasImagen;
+	private int ventanaActual;
+	private DialogTransformacionLineal dialog;
+    private Tramos tramos;
 	
 	public VentanaPrincipal() {
 		
-		setImagenes(new ArrayList<BufferedImage>());
-		setImagenActual(null);
+		setVentanasImagen(new ArrayList<VentanaImagen>());
+		setVentanaActual(-1);
 		
 		setTitle("FotoVision++");
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		initComponents();
+	}
+	
+	private void crearSubImagen(BufferedImage imagen, Punto a, Punto b) {
+		
+		BufferedImage subseleccion = new BufferedImage(b.getxPixel() - a.getxPixel(), b.getyPixel() - a.getyPixel(), imagen.getType());
+		int gris;
+		int x2 = 0;
+		int y2 = 0;
+		
+		for (int x = a.getxPixel(); x < b.getxPixel(); x++) {
+			y2 = 0;
+			for (int y = a.getyPixel(); y < b.getyPixel(); y++) {
+				gris = new Color(imagen.getRGB(x, y)).getRed();
+				
+				subseleccion.setRGB(x2, y2, new Color(gris, gris, gris).getRGB());
+				y2++;
+			}
+			x2++;
+		}
+		
+		abrirVentana(subseleccion);
 	}
 	
 	/*
@@ -60,11 +89,34 @@ public class VentanaPrincipal extends JFrame {
 		
 		// Convertimos a escala de grises
 		imagen = Transformaciones.escalaDeGrisesPAL(imagen);
-		
-		getImagenes().add(imagen);
-		VentanaImagen otraVentana = new VentanaImagen(this, getImagenes().size() - 1, imagen);
-		otraVentana.setVisible(true);
+		abrirVentana(imagen);
 	}
+	
+	public void transformacionLinealPorTramos() {
+        dialog = new DialogTransformacionLineal();
+        JButton boton = new JButton("Aplicar");
+        boton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent arg0) {
+                        int tr = dialog.get_tramos();
+                        tramos = new Tramos(tr);
+                        for (int i = 1; i < tramos.get_num_tramos(); i++) {
+                                tramos.set_tramo(i, dialog.get_x(i-1), dialog.get_y(i-1));
+                        }
+                        
+                        abrirVentana(Transformaciones.transormacionLineal(getVentanasImagen().get(getVentanaActual()).getImagen(), tramos));
+                }
+        });
+        dialog.add(boton);
+        dialog.setVisible(true);
+	}
+	
+	public void abrirVentana(BufferedImage imagen) {
+		setVentanaActual(getVentanasImagen().size());
+        VentanaImagen otraVentana = new VentanaImagen(this, getVentanasImagen().size(), imagen);
+        getVentanasImagen().add(otraVentana);
+        otraVentana.setVisible(true);
+}
 	
 	private void initComponents() {
 		
@@ -108,12 +160,57 @@ public class VentanaPrincipal extends JFrame {
 		accionCerrar.setMnemonic('Q');
 		accionCerrar.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_Q, InputEvent.CTRL_MASK));
 		
+		// Creamos los items (acciones) del menu IMAGEN
+		
+		// SUBIMAGEN
+		
+		JMenuItem accionSubimagen = new JMenuItem("Crear subimagen");
+		accionSubimagen.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				if (getVentanaActual() >= 0) {
+					if (getVentanasImagen().get(getVentanaActual()).isSubSeleccion()) {
+					
+						BufferedImage imagen = getVentanasImagen().get(getVentanaActual()).getImagen();
+						Punto a = getVentanasImagen().get(getVentanaActual()).getOrigenSeleccion();
+						Punto b = getVentanasImagen().get(getVentanaActual()).getFinalSeleccion();
+						
+						crearSubImagen(imagen, a, b);
+					}
+					else {
+						// NO HAY SELECCION
+						System.out.println("No ha seleccionado.");
+					}
+				}
+				else {
+					// MOSTRAR UN DIALOG CON MENSAJE DE IMAGEN NO SELECCIONADA
+					System.out.println("No ha imagen seleccionada");
+				}
+			}
+		});
+		
+		// Creamos los items (acciones) del menu TRANSFORMACIONES
+		
+		JMenuItem accionLinealTramos = new JMenuItem("Transformaciones Lineales por Tramos");
+        accionLinealTramos.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                        transformacionLinealPorTramos();
+                }
+        });
+		
+		
 		// Añadimos las opciones a cada seccion
 		
 		archivoMenu.add(accionAbrir);
 		archivoMenu.add(accionGuardar);
 		archivoMenu.add(new JSeparator());
 		archivoMenu.add(accionCerrar);
+		
+		imagenMenu.add(accionSubimagen);
+		
+		transformacionesMenu.add(accionLinealTramos);
 		
 		// Añadimos las secciones a la barra de menú
 		menuPrincipal.add(archivoMenu);
@@ -125,20 +222,20 @@ public class VentanaPrincipal extends JFrame {
 		add(menuPrincipal, BorderLayout.NORTH);
 	}
 	
-	public BufferedImage getImagenActual() {
-		return imagenActual;
+	public int getVentanaActual() {
+		return ventanaActual;
 	}
 
-	public void setImagenActual(BufferedImage imagenActual) {
-		this.imagenActual = imagenActual;
+	public void setVentanaActual(int ventanaActual) {
+		this.ventanaActual = ventanaActual;
 	}
 
-	public ArrayList<BufferedImage> getImagenes() {
-		return imagenes;
+	public ArrayList<VentanaImagen> getVentanasImagen() {
+		return ventanasImagen;
 	}
 
-	public void setImagenes(ArrayList<BufferedImage> imagenes) {
-		this.imagenes = imagenes;
+	public void setVentanasImagen(ArrayList<VentanaImagen> ventanasImagen) {
+		this.ventanasImagen = ventanasImagen;
 	}
 	
 }
