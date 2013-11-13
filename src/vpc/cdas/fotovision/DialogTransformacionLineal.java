@@ -85,7 +85,6 @@ public class DialogTransformacionLineal extends JDialog{
 	
 	public int get_x(int posi) {
 		try {
-			System.out.println("Esto es lo q hay " + arrayX.get(posi).getText());
 			return Integer.parseInt(arrayX.get(posi).getText());
 		} catch (Exception e) {
 			return -1;

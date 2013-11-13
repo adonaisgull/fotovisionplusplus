@@ -65,24 +65,25 @@ public class Transformaciones {
 			int tramo[] = tramos.get_tramo(i);
 			//pedimos el punto del tramo anterior
 			int tramo_anterior[] = tramos.get_tramo(i - 1);
-			int dividendo = tramo[1] - tramo_anterior[1];
-			int divisor = tramo[0] - tramo_anterior[0];
+			double dividendo = tramo[1] - tramo_anterior[1];
+			double divisor = tramo[0] - tramo_anterior[0];
 			//caso general en el que existe pendiente y no es horizontal ni vertical
 			if (((dividendo) != 0) && ((divisor) != 0)) {
 				//calculo de la pendiente de la recta
-				double m = (tramo[1] - tramo_anterior[1]) / (tramo[0] - tramo_anterior[0]);
+				double m = dividendo / divisor;
 				//calculo de la constante de la recta
 				double c = tramo[1] - m * tramo[0];
 				//este bucle calcula el Vout
 				for (int j = tramo_anterior[1]; j < tramo[1]; j++) {
 					//el calculo se realiza mediante la formula de la recta
-					int resultado = (int) Math.round(m * j + c);
+					double resultado = m * j + c;
 					if (resultado > 255) {
 						resultado = 255;
 					} else if (resultado < 0) {
 						resultado = 0;
 					}
-					lut.set_valor(j, resultado);
+					int res = (int) Math.round(resultado);
+					lut.set_valor(j, res);
 				}
 			//caso en el que la pendiente es cero
 			} else if (((dividendo) == 0) && ((divisor) != 0)) {
