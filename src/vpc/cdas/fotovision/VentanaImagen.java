@@ -38,7 +38,7 @@ public class VentanaImagen extends JDialog {
 			
 			@Override
 			public void focusLost(FocusEvent e) {
-				padre.setImagenActual(null);
+				//padre.setImagenActual(null);
 			}
 			
 			@Override

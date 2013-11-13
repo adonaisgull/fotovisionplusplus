@@ -11,21 +11,10 @@ public class Transformaciones {
 	static final double PAL_RED = 0.222;
 	static final double PAL_GREEN = 0.707;
 	static final double PAL_BLUE = 0.071;
-	static final int VAR_PIXELS = 256;
-	//tabla de transformaciones
-	private static int lut[];
-	
-	Transformaciones() {
-		//inicializacion de la tabla de transformaciones
-		lut = new int[VAR_PIXELS];
-		for (int i = 0; i < VAR_PIXELS; i++) {
-			lut[i] = i;
-		}
-	}
 	
 	private static BufferedImage clona(BufferedImage imagen) {
 		
-		BufferedImage copia=new BufferedImage (imagen.getWidth(),imagen.getHeight(),imagen.getType());
+		BufferedImage copia = new BufferedImage (imagen.getWidth(),imagen.getHeight(),imagen.getType());
 		copia.setData(imagen.getData());
 		
 		return copia;
@@ -69,27 +58,52 @@ public class Transformaciones {
 	
 	public static BufferedImage transormacionLineal(BufferedImage imagen, Tramos tramos) {
 		BufferedImage copia = clona(imagen);
+		LookUpTable lut = new LookUpTable();
 		//calculamos la look up table apartir de cada tramo
 		for (int i = 1; i < tramos.get_num_tramos(); i++) {
 			//pedimos el punto del tramo actual
 			int tramo[] = tramos.get_tramo(i);
 			//pedimos el punto del tramo anterior
 			int tramo_anterior[] = tramos.get_tramo(i - 1);
+			int dividendo = tramo[1] - tramo_anterior[1];
+			int divisor = tramo[0] - tramo_anterior[0];
 			//caso general en el que existe pendiente y no es horizontal ni vertical
-			if (((tramo[1] - tramo_anterior[1]) != 0) && ((tramo[0] - tramo_anterior[0]) != 0)) {
+			if (((dividendo) != 0) && ((divisor) != 0)) {
 				//calculo de la pendiente de la recta
-				int m = (tramo[1] - tramo_anterior[1]) / (tramo[0] - tramo_anterior[0]);
+				double m = (tramo[1] - tramo_anterior[1]) / (tramo[0] - tramo_anterior[0]);
 				//calculo de la constante de la recta
-				int c = tramo[1] - m * tramo[0];
+				double c = tramo[1] - m * tramo[0];
 				//este bucle calcula el Vout
 				for (int j = tramo_anterior[1]; j < tramo[1]; j++) {
 					//el calculo se realiza mediante la formula de la recta
-					lut[j] = m * j + c;
+					int resultado = (int) Math.round(m * j + c);
+					if (resultado > 255) {
+						resultado = 255;
+					} else if (resultado < 0) {
+						resultado = 0;
+					}
+					lut.set_valor(j, resultado);
 				}
-			} else if (((tramo[1] - tramo_anterior[1]) == 0) && ((tramo[0] - tramo_anterior[0]) != 0)) {
-				
+			//caso en el que la pendiente es cero
+			} else if (((dividendo) == 0) && ((divisor) != 0)) {
+				lut.set_valor(tramo[1], tramo[0]);
+			//caso en el que la pendiente es infinito
+			} else if (((dividendo) != 0) && ((divisor) == 0)) {
+				for (int j = tramo_anterior[1]; j < tramo[1]; j++) {
+					lut.set_valor(j, tramo[0]);
+				}
 			}
 		}
+		
+		for (int x = 0; x < copia.getWidth(); x++) {
+			for (int y = 0; y < copia.getHeight(); y++) {
+				Color color = new Color(copia.getRGB(x, y));
+				int Vin = color.getRed();
+				int Vout = lut.get_valor(Vin);
+				copia.setRGB(x, y, new Color(Vout, Vout, Vout).getRGB());
+			}
+		}
+		
 		return copia;
 	}
 }

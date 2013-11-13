@@ -5,10 +5,10 @@ public class Tramos {
 	private int y[];
 	private int num_tramos;
 	
-	Tramos(int num_tramos) {
-		this.num_tramos = num_tramos + 1;
-		x = new int[num_tramos];
-		y = new int[num_tramos];
+	Tramos(int tramos) {
+		this.num_tramos = tramos + 1;
+		x = new int[this.num_tramos];
+		y = new int[this.num_tramos];
 		x[0] = 0;
 		y[0] = 0;
 	}
@@ -18,8 +18,12 @@ public class Tramos {
 	}
 	
 	public void set_tramo(int tramo, int x, int y) {
+		try {
 		this.x[tramo] = x;
 		this.y[tramo] = y;
+		} catch (Exception e) {
+			System.out.println("Error 1");
+		}
 	}
 	
 	public int[] get_tramo(int tramo) {
