@@ -153,7 +153,8 @@ public class Transformaciones {
 		for (int i = 0; i < LookUpTable.VAR_PIXELS; i++) {
 			double h = lut.get_valor(i);
 			double p = h / size;
-			E = E + (p * (Math.log10(p) / Math.log10(2)));
+			if (h != 0)
+				E = E + (p * (Math.log10(p) / Math.log10(2)));
 		}
 		return E;
 	}
@@ -193,6 +194,48 @@ public class Transformaciones {
                     Color color = new Color(copia.getRGB(x, y));
                     int Vin = color.getRed();
                     int Vout = lut.get_valor(Vin);
+                    copia.setRGB(x, y, new Color(Vout, Vout, Vout).getRGB());
+            }
+		}
+		return copia;
+	}
+	
+	public static BufferedImage compararImagenes(BufferedImage imagen1, BufferedImage imagen2, int T) {
+		BufferedImage copia = clona(imagen1);
+		for (int x = 0; x < copia.getWidth(); x++) {
+            for (int y = 0; y < copia.getHeight(); y++) {
+            	Color color1 = new Color(imagen1.getRGB(x, y));
+            	Color color2 = new Color(imagen2.getRGB(x, y));
+            	int color_imagen1 = color1.getRed();
+            	int color_imagen2 = color2.getRed();
+            	int nuevo_color = Math.abs(color_imagen1 - color_imagen2);
+            	if (nuevo_color > T) {
+            		copia.setRGB(x, y, new Color(255, 0, 0).getRGB());
+            	}
+            }
+		}
+		return copia;
+	}
+	
+	public static BufferedImage equalizacion(BufferedImage imagen) {
+		BufferedImage copia = clona(imagen);
+		double size = imagen.getWidth() * imagen.getHeight();
+		double m = LookUpTable.VAR_PIXELS;
+		double var = m / size;
+		LookUpTable lut = calcularH(imagen);
+		LookUpTable lut_vout = new LookUpTable();
+		for(int i = 0; i < LookUpTable.VAR_PIXELS; i++) {
+			int Vout = (int) Math.round((var * lut.get_valor(i)) - 1);
+			if (Vout < 0) {
+				Vout = 0;
+			}
+			lut_vout.set_valor(i, Vout);
+		}
+		for (int x = 0; x < copia.getWidth(); x++) {
+            for (int y = 0; y < copia.getHeight(); y++) {
+                    Color color = new Color(copia.getRGB(x, y));
+                    int Vin = color.getRed();
+                    int Vout = lut_vout.get_valor(Vin);
                     copia.setRGB(x, y, new Color(Vout, Vout, Vout).getRGB());
             }
 		}
