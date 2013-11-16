@@ -1,9 +1,10 @@
 package vpc.cdas.fotovision;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FileDialog;
-import java.awt.Rectangle;
+import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -14,124 +15,190 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
-import javax.swing.JButton;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import javax.swing.JSeparator;
+import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 
 public class VentanaPrincipal extends JFrame {
 
-	// CAMBIAR ESTO PARA QUE ESTA CLASE CONTENGA UN ARRAY DE VENTANAS IMAGEN
-	
 	private static final long serialVersionUID = 1L;
+	private static final int ANCHO_MIN = 600;
+	private static final int ALTO_MIN = 400;
+	
 	private ArrayList<VentanaImagen> ventanasImagen;
 	private int ventanaActual;
-	private DialogTransformacionLineal dialog;
-    private Tramos tramos;
-	
+	private boolean mostrarGuias;
+	private boolean seleccionActiva;
+
 	public VentanaPrincipal() {
-		
+
 		setVentanasImagen(new ArrayList<VentanaImagen>());
 		setVentanaActual(-1);
-		
+
 		setTitle("FotoVision++");
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setMinimumSize(new Dimension(ANCHO_MIN, ALTO_MIN));
 		
+		setMostrarGuias(false);
+		setSeleccionActiva(false);
+
 		initComponents();
 	}
-	
-	private void crearSubImagen(BufferedImage imagen, Punto a, Punto b) {
-		
-		BufferedImage subseleccion = new BufferedImage(b.getxPixel() - a.getxPixel(), b.getyPixel() - a.getyPixel(), imagen.getType());
-		int gris;
-		int x2 = 0;
-		int y2 = 0;
-		
-		for (int x = a.getxPixel(); x < b.getxPixel(); x++) {
-			y2 = 0;
-			for (int y = a.getyPixel(); y < b.getyPixel(); y++) {
-				gris = new Color(imagen.getRGB(x, y)).getRed();
-				
-				subseleccion.setRGB(x2, y2, new Color(gris, gris, gris).getRGB());
-				y2++;
-			}
-			x2++;
-		}
-		
-		abrirVentana(subseleccion);
-	}
-	
-	/*
-	 * Abre un dialogo para buscar un fichero en el disco duro.
-	 * Devuelve un BufferedImage con la imagen que elige el usuario.
-	 */
+
 	private void cargarImagen() {
-		
+
 		BufferedImage imagen = null;
 		FileDialog fd = new FileDialog(this, "Elige un fichero", FileDialog.LOAD);
 		fd.setFile("*.bmp");
 		fd.setVisible(true);
-		
+
 		String nombreFichero = fd.getFile();
-		
+
 		if (nombreFichero != null) {
 			nombreFichero = fd.getDirectory() + nombreFichero;
-			
+
 			try {
 				imagen = ImageIO.read(new File(nombreFichero));
-			
+
 			} catch (IOException e) { }
 		}
-		
+
 		// Convertimos a escala de grises
-		imagen = Transformaciones.escalaDeGrisesPAL(imagen);
-		abrirVentana(imagen);
+		imagen = Operaciones.escalaDeGrisesPAL(imagen);
+		mostrarImagen(imagen);
 	}
 	
+	private void guardarImagen() {
+		
+		BufferedImage imagen = getVentanasImagen().get(getVentanaActual()).getImagen();
+		
+		FileDialog fd = new FileDialog(this, "Guardar imagen", FileDialog.LOAD);
+		fd.setVisible(true);
+
+		String nombreFichero = fd.getFile();
+
+		if (nombreFichero != null) {
+			nombreFichero = fd.getDirectory() + nombreFichero;
+
+			try {
+				ImageIO.write(imagen, "bmp", new File(nombreFichero));
+
+			} catch (IOException e) { }
+		}
+	}
+	
+	private void mostrarSubimagen() {
+		if (getVentanaActual() >= 0) {
+			if (getVentanasImagen().get(getVentanaActual()).isSubSeleccion()) {
+
+				BufferedImage imagen = getVentanasImagen().get(getVentanaActual()).getImagen();
+				Punto a = getVentanasImagen().get(getVentanaActual()).getOrigenSeleccion();
+				Punto b = getVentanasImagen().get(getVentanaActual()).getFinalSeleccion();
+
+				BufferedImage subimagen = Operaciones.obtenerSubimagen(imagen, a, b);
+				mostrarImagen(subimagen);
+			}
+			else {
+				// NO HAY SELECCION
+				//System.out.println("No ha seleccionado.");
+			}
+		}
+		else {
+			// MOSTRAR UN DIALOG CON MENSAJE DE IMAGEN NO SELECCIONADA
+			//System.out.println("No ha imagen seleccionada");
+		}
+		
+	}
+
+
 	public void transformacionLinealPorTramos() {
-        dialog = new DialogTransformacionLineal();
-        JButton boton = new JButton("Aplicar");
-        boton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent arg0) {
-                        int tr = dialog.get_tramos();
-                        tramos = new Tramos(tr);
-                        for (int i = 1; i < tramos.get_num_tramos(); i++) {
-                                tramos.set_tramo(i, dialog.get_x(i-1), dialog.get_y(i-1));
-                        }
-                        
-                        abrirVentana(Transformaciones.transormacionLineal(getVentanasImagen().get(getVentanaActual()).getImagen(), tramos));
-                }
-        });
-        dialog.add(boton);
-        dialog.setVisible(true);
+		
+		VentanaTransformacionLineal ventana = new VentanaTransformacionLineal(getVentanasImagen().get(getVentanaActual()));
+		ventana.setVisible(true);
 	}
 	
-	public void abrirVentana(BufferedImage imagen) {
-		setVentanaActual(getVentanasImagen().size());
-        VentanaImagen otraVentana = new VentanaImagen(this, getVentanasImagen().size(), imagen);
-        getVentanasImagen().add(otraVentana);
-        otraVentana.setVisible(true);
-}
 	
+	public void mostrarImagen(BufferedImage imagen) {
+		
+		setVentanaActual(getVentanasImagen().size());
+		VentanaImagen otraVentana = new VentanaImagen(this, getVentanasImagen().size(), imagen);
+		
+		otraVentana.setMostrarGuias(isMostrarGuias());
+		otraVentana.setSeleccionActiva(isSeleccionActiva());
+		
+		getVentanasImagen().add(otraVentana);
+		otraVentana.setVisible(true);
+	}
+	
+	public void mostrarInformacion() {
+		
+		VentanaSecundaria ventana = new VentanaInformacion(getVentanasImagen().get(getVentanaActual()));
+		ventana.setVisible(true);
+	}
+	
+	public void mostrarHistogramaAbsoluto() {
+		
+		BufferedImage imagen = getVentanasImagen().get(getVentanaActual()).getImagen();
+		VentanaSecundaria ventana = new VentanaHistograma(getVentanasImagen().get(getVentanaActual()), Operaciones.histogramaAbs(imagen), VentanaHistograma.ABSOLUTO);
+		ventana.setVisible(true);
+	}
+	
+	public void mostrarHistogramaAcumulado() {
+		
+		BufferedImage imagen = getVentanasImagen().get(getVentanaActual()).getImagen();
+		VentanaSecundaria ventana = new VentanaHistograma(getVentanasImagen().get(getVentanaActual()), Operaciones.histogramaAcu(imagen), VentanaHistograma.ACUMULADO);
+		ventana.setVisible(true);
+	}
+	
+	public void correccionGamma() {
+		
+		VentanaSecundaria ventana = new VentanaCorreccionGamma(getVentanasImagen().get(getVentanaActual()));
+		ventana.setVisible(true);
+	}
+	
+	public void ecualizacionHistograma() {
+		
+		BufferedImage imagen = getVentanasImagen().get(getVentanaActual()).getImagen();
+		mostrarImagen(Operaciones.ecualizacion(imagen));
+	}
+
+	public void brilloContraste() {
+		
+		double b = Operaciones.getBrillo(getVentanasImagen().get(getVentanaActual()).getImagen());
+		double c = Operaciones.getContraste(getVentanasImagen().get(getVentanaActual()).getImagen());
+		
+		VentanaSecundaria ventana = new VentanaBrilloContraste(getVentanasImagen().get(getVentanaActual()), b, c);
+		ventana.setVisible(true);
+	}
+	
+	public void compararImagenes() {
+		
+		VentanaSecundaria ventana = new VentanaCompararImagenes(getVentanasImagen().get(getVentanaActual()));
+		ventana.setVisible(true);
+	}
+
 	private void initComponents() {
-		
+
 		// Creamos la barra del menú principal
-		JMenuBar menuPrincipal = new JMenuBar();
-		
+		JMenuBar barraPrincipal = new JMenuBar();
+		JMenuBar barraSecundaria = new JMenuBar();
+
 		// Creamos las secciones del menú
 		JMenu archivoMenu = new JMenu("Archivo");
 		JMenu imagenMenu = new JMenu("Imagen");
-		JMenu transformacionesMenu = new JMenu("Transformaciones");
+		JMenu transformacionesMenu = new JMenu("Operaciones");
 		JMenu verMenu = new JMenu("Ver");
 		JMenu ayudaMenu = new JMenu("Ayuda");
-		
+
 		// Creamos los items (acciones) del menu ARCHIVO
-		
+
 		// ABRIR
 		JMenuItem accionAbrir = new JMenuItem("Abrir");
 		accionAbrir.setMnemonic('O');
@@ -142,7 +209,7 @@ public class VentanaPrincipal extends JFrame {
 				cargarImagen();
 			}
 		});
-		
+
 		// GUARDAR
 		JMenuItem accionGuardar = new JMenuItem("Guardar");
 		accionGuardar.setMnemonic('S');
@@ -150,78 +217,190 @@ public class VentanaPrincipal extends JFrame {
 		accionGuardar.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				//System.out.println("Abrir fichero");
-				
+				guardarImagen();
 			}
 		});
-		
+
 		// CERRAR
 		JMenuItem accionCerrar = new JMenuItem("Cerrar");
 		accionCerrar.setMnemonic('Q');
 		accionCerrar.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_Q, InputEvent.CTRL_MASK));
-		
+
 		// Creamos los items (acciones) del menu IMAGEN
+
+		// SUBIMAGEN		
 		
-		// SUBIMAGEN
-		
-		JMenuItem accionSubimagen = new JMenuItem("Crear subimagen");
+		JMenuItem accionSubimagen = new JMenuItem("Copiar selección");
 		accionSubimagen.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				
-				if (getVentanaActual() >= 0) {
-					if (getVentanasImagen().get(getVentanaActual()).isSubSeleccion()) {
-					
-						BufferedImage imagen = getVentanasImagen().get(getVentanaActual()).getImagen();
-						Punto a = getVentanasImagen().get(getVentanaActual()).getOrigenSeleccion();
-						Punto b = getVentanasImagen().get(getVentanaActual()).getFinalSeleccion();
-						
-						crearSubImagen(imagen, a, b);
-					}
-					else {
-						// NO HAY SELECCION
-						System.out.println("No ha seleccionado.");
-					}
-				}
-				else {
-					// MOSTRAR UN DIALOG CON MENSAJE DE IMAGEN NO SELECCIONADA
-					System.out.println("No ha imagen seleccionada");
-				}
+				mostrarSubimagen();
+			}
+		});
+
+		// INFORMACION
+
+		JMenuItem accionInformacion = new JMenuItem("Información");
+		accionInformacion.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mostrarInformacion();
+			}
+		});
+
+		// HISTOGRAMA ABSOLUTO
+
+		JMenuItem accionHistoAbs = new JMenuItem("Histograma Absoluto");
+		accionHistoAbs.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mostrarHistogramaAbsoluto();
+			}
+		});
+
+		// HISTOGRAMA ACUMULADO
+
+		JMenuItem accionHistoAcu = new JMenuItem("Histograma Acumulado");
+		accionHistoAcu.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mostrarHistogramaAcumulado();
+			}
+		});
+
+		// Creamos los items (acciones) del menu TRANSFORMACIONES
+
+		JMenuItem accionLinealTramos = new JMenuItem("Transformación Lineal por Tramos");
+		accionLinealTramos.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				transformacionLinealPorTramos();
 			}
 		});
 		
-		// Creamos los items (acciones) del menu TRANSFORMACIONES
+		JMenuItem accionBrilloContraste = new JMenuItem("Brillo y Contraste");
+		accionBrilloContraste.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				brilloContraste();
+			}
+		});
+
+		JMenuItem accionEcualizacionHistograma = new JMenuItem("Ecualización del histograma");
+		accionEcualizacionHistograma.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ecualizacionHistograma();
+			}
+		});
 		
-		JMenuItem accionLinealTramos = new JMenuItem("Transformaciones Lineales por Tramos");
-        accionLinealTramos.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                        transformacionLinealPorTramos();
-                }
-        });
+		JMenuItem accionCorrecionGamma = new JMenuItem("Correción Gamma");
+		accionCorrecionGamma.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				correccionGamma();
+			}
+		});
 		
+		JMenuItem accionCompararImagenes = new JMenuItem("Comparar con otra imagen");
+		accionCompararImagenes.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				compararImagenes();
+			}
+		});
 		
+
 		// Añadimos las opciones a cada seccion
-		
+
 		archivoMenu.add(accionAbrir);
 		archivoMenu.add(accionGuardar);
 		archivoMenu.add(new JSeparator());
 		archivoMenu.add(accionCerrar);
-		
+
+		imagenMenu.add(accionInformacion);
+		imagenMenu.add(accionHistoAbs);
+		imagenMenu.add(accionHistoAcu);
+		imagenMenu.add(new JSeparator());
 		imagenMenu.add(accionSubimagen);
-		
+
+		// Lineales
 		transformacionesMenu.add(accionLinealTramos);
-		
+		transformacionesMenu.add(accionBrilloContraste);
+
+		transformacionesMenu.add(new JSeparator());
+
+		// No lineales
+		transformacionesMenu.add(accionEcualizacionHistograma);
+		transformacionesMenu.add(accionCorrecionGamma);
+		transformacionesMenu.add(accionCompararImagenes);
+
 		// Añadimos las secciones a la barra de menú
-		menuPrincipal.add(archivoMenu);
-		menuPrincipal.add(imagenMenu);
-		menuPrincipal.add(transformacionesMenu);
-		menuPrincipal.add(verMenu);
-		menuPrincipal.add(ayudaMenu);
+		barraPrincipal.add(archivoMenu);
+		barraPrincipal.add(imagenMenu);
+		barraPrincipal.add(transformacionesMenu);
+		barraPrincipal.add(verMenu);
+		barraPrincipal.add(ayudaMenu);
 		
-		add(menuPrincipal, BorderLayout.NORTH);
+		JToggleButton btnSeleccion = new JToggleButton();
+		btnSeleccion.setMargin(new Insets(1, 1, 1, 1));
+		btnSeleccion.setIcon(new ImageIcon("media/icono_seleccion.png"));
+		btnSeleccion.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				JToggleButton source = (JToggleButton)e.getSource();
+				if (source.isSelected()) {
+					setSeleccionActiva(true);
+					for (int i = 0; i < getVentanasImagen().size(); i++)
+						getVentanasImagen().get(i).setSeleccionActiva(true);
+				}
+				else {
+					setSeleccionActiva(false);
+					for (int i = 0; i < getVentanasImagen().size(); i++)
+						getVentanasImagen().get(i).setSeleccionActiva(false);
+				}
+				
+				getVentanasImagen().get(getVentanaActual()).toFront();
+			}
+		});
+		barraSecundaria.add(btnSeleccion);
+		
+		JToggleButton btnGuias = new JToggleButton();
+		btnGuias.setMargin(new Insets(1, 1, 1, 1));
+		btnGuias.setIcon(new ImageIcon("media/icono_guias.png"));
+		btnGuias.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				JToggleButton source = (JToggleButton)e.getSource();
+				if (source.isSelected()) {
+					setMostrarGuias(true);
+					for (int i = 0; i < getVentanasImagen().size(); i++)
+						getVentanasImagen().get(i).setMostrarGuias(true);
+				}
+				else {
+					setMostrarGuias(false);
+					for (int i = 0; i < getVentanasImagen().size(); i++)
+						getVentanasImagen().get(i).setMostrarGuias(false);
+				}
+				getVentanasImagen().get(getVentanaActual()).toFront();
+			}
+		});
+		
+		barraSecundaria.add(btnGuias);
+		
+		
+		JPanel contenedor = new JPanel();
+		contenedor.setLayout(new GridLayout(2, 1));
+		
+		contenedor.add(barraPrincipal);
+		contenedor.add(barraSecundaria);
+		
+		add(contenedor, BorderLayout.NORTH);
+		//add(menuPrincipal, BorderLayout.NORTH);
 	}
-	
+
 	public int getVentanaActual() {
 		return ventanaActual;
 	}
@@ -236,6 +415,22 @@ public class VentanaPrincipal extends JFrame {
 
 	public void setVentanasImagen(ArrayList<VentanaImagen> ventanasImagen) {
 		this.ventanasImagen = ventanasImagen;
+	}
+
+	public boolean isMostrarGuias() {
+		return mostrarGuias;
+	}
+
+	public void setMostrarGuias(boolean mostrarGuias) {
+		this.mostrarGuias = mostrarGuias;
+	}
+
+	public boolean isSeleccionActiva() {
+		return seleccionActiva;
+	}
+
+	public void setSeleccionActiva(boolean seleccionActiva) {
+		this.seleccionActiva = seleccionActiva;
 	}
 	
 }

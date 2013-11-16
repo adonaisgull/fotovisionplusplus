@@ -1,22 +1,45 @@
 package vpc.cdas.fotovision;
 
 public class LookUpTable {
-        static final int VAR_PIXELS = 256;
-        private int lut[];
+	private static final int PIXELS = 256;
+	private int tabla[];
+	private int size;
 
-        LookUpTable() {
-                //inicializacion de la tabla de transformaciones
-                lut = new int[VAR_PIXELS];
-                for (int i = 0; i < VAR_PIXELS; i++) {
-                        lut[i] = i;
-                }
-        }
-        
-        public int get_valor(int posi) {
-                return lut[posi];
-        }
-        
-        public void set_valor(int posi, int valor) {
-                lut[posi] = valor;
-        }
+	LookUpTable() {
+		
+		setSize(PIXELS);
+		tabla = new int[getSize()];
+		for (int i = 0; i < getSize(); i++) {
+			tabla[i] = i;
+		}
+	}
+
+	LookUpTable(int valorInicial) {
+		
+		setSize(PIXELS);
+		tabla = new int[getSize()];
+		for (int i = 0; i < getSize(); i++) {
+			tabla[i] = valorInicial;
+		}
+	}
+	
+	public int getValor(int index) {
+		return tabla[index];
+	}
+
+	public void setValor(int index, int valor) {
+		tabla[index] = valor;
+	}
+
+	public void incrementar(int index) {
+		tabla[index]++;
+	}
+
+	public int getSize() {
+		return size;
+	}
+
+	public void setSize(int size) {
+		this.size = size;
+	}	
 }

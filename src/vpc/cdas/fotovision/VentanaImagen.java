@@ -2,25 +2,33 @@ package vpc.cdas.fotovision;
 
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
+
 
 public class VentanaImagen extends JDialog {
 
 	private static final long serialVersionUID = 1L;
-	static final int MARGEN = 13;
+	static final int MARGEN = 18;
 	static final int DESFASE = 22;
-	static final int ESPACIO_VENTANA = 40;
+	static final int ESPACIO_VENTANA = 30;
+	static final int DESFASE_VENTANA = 100;
 	
 	private int id;
 	private BufferedImage imagen;
@@ -31,6 +39,16 @@ public class VentanaImagen extends JDialog {
 	private boolean primerPunto;
 	private int puntos;
 	
+	private boolean enFoco;
+	private boolean mostrarGuias;
+	private boolean seleccionActiva;
+	
+	private JTextField campoX;
+	private JTextField campoY;
+	private JTextField camboGris;
+	
+	private VentanaPrincipal padre;
+	
 	public VentanaImagen(final VentanaPrincipal padre, final int id, BufferedImage imagen) {
 		super(padre, "Imagen " + (id + 1));
 		
@@ -38,18 +56,79 @@ public class VentanaImagen extends JDialog {
 		setSubSeleccion(false);
 		setId(id);
 		setImagen(imagen);
-		setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
-	
+		setPadre(padre);
+		
 		addFocusListener(new FocusListener() {
 			
 			@Override
 			public void focusLost(FocusEvent e) {
-				//padre.setVentanaActual(-1);
+				setEnFoco(false);
+				repaint();
 			}
 			
 			@Override
 			public void focusGained(FocusEvent e) {
 				padre.setVentanaActual(getId());
+				setEnFoco(true);
+			}
+		});
+		
+		addWindowListener(new WindowListener() {
+			
+			@Override
+			public void windowOpened(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void windowIconified(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void windowDeiconified(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void windowDeactivated(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void windowClosing(WindowEvent arg0) {
+				
+				ArrayList<VentanaImagen> ventanas = getPadre().getVentanasImagen();
+				
+				setVisible(false);
+				boolean cambio = false;
+				for (int i = ventanas.size() - 1; i >= 0 ; i--) {
+					if (ventanas.get(i).isVisible()) {
+						getPadre().setVentanaActual(i);
+						ventanas.get(i).toFront();
+						cambio = true;
+						break;
+					}
+				}
+				
+				if (!cambio)
+					getPadre().setVentanaActual(-1);
+			}
+			
+			@Override
+			public void windowClosed(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void windowActivated(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
 			}
 		});
 		
@@ -57,46 +136,33 @@ public class VentanaImagen extends JDialog {
 			
 			@Override
 			public void mouseMoved(MouseEvent arg0) {
-				caputaraMovimiento(crearPunto(arg0.getX(), arg0.getY()));			
+			
+				caputaraMovimiento(crearPunto(arg0.getX(), arg0.getY()));
 			}
 			
 			@Override
-			public void mouseDragged(MouseEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void mouseDragged(MouseEvent arg0) {	}
 		});
 		
 		addMouseListener(new MouseListener() {
 			
 			@Override
-			public void mouseReleased(MouseEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void mouseReleased(MouseEvent arg0) { }
 			
 			@Override
-			public void mousePressed(MouseEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void mousePressed(MouseEvent arg0) { }
 			
 			@Override
-			public void mouseExited(MouseEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void mouseExited(MouseEvent arg0) { }
 			
 			@Override
-			public void mouseEntered(MouseEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void mouseEntered(MouseEvent arg0) {	}
 			
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
-				
-				capturaClick(crearPunto(arg0.getX(), arg0.getY()));
+				if (isSeleccionActiva()) {
+					capturaClick(crearPunto(arg0.getX(), arg0.getY()));
+				}
 			}
 		});
 		
@@ -104,14 +170,44 @@ public class VentanaImagen extends JDialog {
 		JLabel capaImagen = new JLabel(new ImageIcon(imagen));
 		contenedor.add(capaImagen);
 		
+		JTextField campoX = new JTextField(4);
+		campoX.setEnabled(false);
+		campoX.setText("0");
+		setCampoX(campoX);
+		
+		JTextField campoY = new JTextField(4);
+		campoY.setEnabled(false);
+		campoY.setText("0");
+		setCampoY(campoY);
+		
+		JTextField campoGris = new JTextField(3);
+		campoGris.setEnabled(false);
+		campoGris.setText("0");
+		setCamboGris(campoGris);
+		
+		setLayout(new FlowLayout(FlowLayout.LEFT));
 		getContentPane().add(contenedor);
+		getContentPane().add(new JLabel("  X"));
+		getContentPane().add(campoX);
+		getContentPane().add(new JLabel("Y"));
+		getContentPane().add(campoY);
+		getContentPane().add(new JLabel("GRIS"));
+		getContentPane().add(campoGris);
 		pack();
 		setVisible(true);
 		
-		setLayout(null);
-		setSize(imagen.getWidth() + MARGEN * 2, imagen.getHeight() + DESFASE + MARGEN * 2);
-		setLocation((id + 1) * ESPACIO_VENTANA, (id + 1) * ESPACIO_VENTANA);
+		setSize(imagen.getWidth() + MARGEN * 2, imagen.getHeight() + DESFASE + MARGEN * 2 + 30);
+	
+		ArrayList<VentanaImagen> ventanas = getPadre().getVentanasImagen();
+				
+		int ventanasActivas = 0;		
+		for (int i = 0; i < ventanas.size(); i++) {
+			if (ventanas.get(i).isVisible()) {
+				ventanasActivas++;
+			}
+		}
 		
+		setLocation((ventanasActivas + 1) * ESPACIO_VENTANA, (ventanasActivas + 1) * ESPACIO_VENTANA + DESFASE_VENTANA);
 	}
 	
 	
@@ -122,39 +218,59 @@ public class VentanaImagen extends JDialog {
 		
 		if (xPixel < 0)
 			xPixel = 0;
-		if (xPixel > getImagen().getWidth())
-			xPixel = getImagen().getWidth();
+		if (xPixel >= getImagen().getWidth())
+			xPixel = getImagen().getWidth() - 1;
 		if (yPixel < 0)
 			yPixel = 0;
-		if (yPixel > getImagen().getHeight())
-			yPixel = getImagen().getHeight();
+		if (yPixel >= getImagen().getHeight())
+			yPixel = getImagen().getHeight() - 1;
 		
 		return new Punto(x, y, xPixel, yPixel);
 	}
 	
 	private void caputaraMovimiento(Punto punto) {
 		
-		setActual(punto);
-		if (!isSubSeleccion())
-			repaint();
+		if (isDentroImagen(punto)) {
+			setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
+
+
+			getCampoX().setText(String.valueOf(punto.getxPixel()));
+			getCampoY().setText(String.valueOf(punto.getyPixel()));
+
+			Color color = new Color(getImagen().getRGB(punto.getxPixel(), punto.getyPixel()));
+			getCamboGris().setText(String.valueOf(color.getRed()));
+
+			if (isMostrarGuias()) {
+				setActual(punto);
+				if (!isSubSeleccion())
+					repaint();
+			}
+
+		}
+		else {
+			setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+		}
 	}
 	
 	private void capturaClick(Punto punto) {
 		
-		switch (getPuntos()) {
+		if (isDentroImagen(punto)) {
 		
-		case 0:
-			setOrigenSeleccion(punto);
-			setPuntos(getPuntos() + 1);
-			setSubSeleccion(false);
-			setPrimerPunto(true);
-			break;
-		case 1:
-			setFinalSeleccion(punto);
-			setSubSeleccion(true);
-			setPrimerPunto(false);
-			setPuntos(0);
-			break;
+			switch (getPuntos()) {
+			
+			case 0:
+				setOrigenSeleccion(punto);
+				setPuntos(getPuntos() + 1);
+				setSubSeleccion(false);
+				setPrimerPunto(true);
+				break;
+			case 1:
+				setFinalSeleccion(punto);
+				setSubSeleccion(true);
+				setPrimerPunto(false);
+				setPuntos(0);
+				break;
+			}
 		}
 		
 		repaint();
@@ -166,14 +282,11 @@ public class VentanaImagen extends JDialog {
 		int y1 = a.getY();
 		int x2 = b.getX();
 		int y2 = b.getY();
-		int aux;
-		
-		g.setColor(Color.red);
-		
 		int difX = Math.abs(x1 - x2);
 		int difY = Math.abs(y1 - y2);
 		
-		
+		g.setColor(Color.red);
+
 		if (x1 > x2) {
 			x1 -= difX;
 		}
@@ -181,19 +294,8 @@ public class VentanaImagen extends JDialog {
 		if (y1 > y2) {
 			y1 -= difY;
 		}
-		
+				
 		g.drawRect(x1, y1, difX, difY);
-	}
-	
-	private void pintarMarca(Graphics g, Punto a) {
-		
-		int x = a.getX();
-		int y = a.getY();
-		
-		pintarLineas(g, a);
-		g.setColor(Color.green);
-		g.drawLine(x, y + 10, x, y - 10);
-		g.drawLine(x - 10, y, x + 10, y);
 	}
 	
 	private void pintarLineas(Graphics g, Punto a) {
@@ -201,31 +303,49 @@ public class VentanaImagen extends JDialog {
 		int x = a.getX();
 		int y = a.getY();
 		
-		g.setColor(Color.red);
+		if (isDentroImagen(a)){
+			g.setColor(Color.red);
+			g.drawLine(x, MARGEN + DESFASE, x, getImagen().getHeight() - 1 + MARGEN + DESFASE);
+			g.drawLine(MARGEN, y, getImagen().getWidth() - 1 + MARGEN, y);
+		}
+	}
+	
+	private boolean isDentroImagen(Punto punto) {
 		
-		g.drawLine(x, MARGEN + DESFASE, x, getImagen().getHeight() + MARGEN + DESFASE);
-		g.drawLine(MARGEN, y, getImagen().getWidth() + MARGEN, y);
+		int x = punto.getX() - MARGEN;
+		int y = punto.getY() - MARGEN - DESFASE;
+		
+		if (x >= 0 && x < getImagen().getWidth() && y >= 0 && y < getImagen().getHeight()) {
+			return true;
+		}
+		
+		return false;
 	}
 	
 	@Override
 	public void paint(Graphics g) {
 		
 		super.paint(g);
-		//g.drawImage(getImagen(), MARGEN, MARGEN + DESFASE, this);
 		
-		if (isPrimerPunto()) {
-			pintarMarca(g, getOrigenSeleccion());
+		if (isSeleccionActiva()) {
+			
+			if (isPrimerPunto()) {
+				pintarLineas(g, getOrigenSeleccion());
+			}
+			
+			if (isSubSeleccion()) {	
+				pintarSeleccion(g, getOrigenSeleccion(), getFinalSeleccion());
+				pintarLineas(g, getOrigenSeleccion());
+				pintarLineas(g, getFinalSeleccion());
+			}
 		}
 		
-		if (isSubSeleccion()) {	
-			pintarSeleccion(g, getOrigenSeleccion(), getFinalSeleccion());
+		if (isEnFoco()) {
+			if (isMostrarGuias()) {
+				if (getActual() != null)
+					pintarLineas(g, getActual());
+			}
 		}
-		
-		if (!isSubSeleccion()) {
-			if (getActual() != null)
-				pintarLineas(g, getActual());
-		}
-		
 	}
 	
 	public Punto getActual() {
@@ -291,5 +411,68 @@ public class VentanaImagen extends JDialog {
 	public void setPuntos(int puntos) {
 		this.puntos = puntos;
 	}
+
+
+	public boolean isMostrarGuias() {
+		return mostrarGuias;
+	}
+
+
+	public void setMostrarGuias(boolean mostrarGuias) {
+		repaint();
+		this.mostrarGuias = mostrarGuias;
+	}
+
+	public boolean isSeleccionActiva() {
+		return seleccionActiva;
+	}
+
+	public void setSeleccionActiva(boolean seleccionActiva) {
+		repaint();
+		this.seleccionActiva = seleccionActiva;
+	}
+
+
+	public boolean isEnFoco() {
+		return enFoco;
+	}
+
+
+	public void setEnFoco(boolean enFoco) {
+		this.enFoco = enFoco;
+	}
+
+	public VentanaPrincipal getPadre() {
+		return padre;
+	}
+
+	public void setPadre(VentanaPrincipal padre) {
+		this.padre = padre;
+	}
+
+	public JTextField getCampoX() {
+		return campoX;
+	}
+
+	public void setCampoX(JTextField campoX) {
+		this.campoX = campoX;
+	}
+
+
+	public JTextField getCampoY() {
+		return campoY;
+	}
+
+	public void setCampoY(JTextField campoY) {
+		this.campoY = campoY;
+	}
+
+	public JTextField getCamboGris() {
+		return camboGris;
+	}
+
+	public void setCamboGris(JTextField camboGris) {
+		this.camboGris = camboGris;
+	}	
 	
 }
