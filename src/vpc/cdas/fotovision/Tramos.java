@@ -6,11 +6,9 @@ public class Tramos {
 	private int num_tramos;
 
 	Tramos(int tramos) {
-		this.num_tramos = tramos + 1;
+		this.num_tramos = tramos;
 		x = new int[this.num_tramos];
 		y = new int[this.num_tramos];
-		x[0] = 0;
-		y[0] = 0;
 	}
 
 	public int getNumTramos() {

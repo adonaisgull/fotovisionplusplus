@@ -57,7 +57,7 @@ public class VentanaTransformacionLineal extends VentanaSecundaria {
 		
 		for (int i = 0; i < MAX_TRAMOS; i++) {
 			int j = i + 1;
-			arrayLabel.add(new JLabel("Tramo " + j + " :"));
+			arrayLabel.add(new JLabel("Punto " + j + " :"));
 			arrayX.add(new JTextField(5));
 			arrayY.add(new JTextField(5));
 		}
@@ -65,7 +65,7 @@ public class VentanaTransformacionLineal extends VentanaSecundaria {
 		setLayout(new BorderLayout());
 		setSize(250, 400);
 		
-		contenedor.add(new JLabel("Número de tramos: "));
+		contenedor.add(new JLabel("Tramos: "));
 		contenedor.add(getCombo());
 		contenedor.add(new JLabel(""));
 		
@@ -81,15 +81,22 @@ public class VentanaTransformacionLineal extends VentanaSecundaria {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				int tr = getTramos();
-				Tramos tramos = new Tramos(tr);
 				
-				for (int i = 1; i < tramos.getNumTramos(); i++) {
-					tramos.setTramo(i, getX(i-1), getY(i-1));
+				ArrayList<Coordenada> puntos = new ArrayList<Coordenada>();
+				
+				//int tr = getTramos();
+				//Tramos tramos = new Tramos(tr);
+				
+				for (int i = 0; i <= getTramos(); i++) {
+				     //tramos.setTramo(i, getX(i), getY(i));
+				     
+				     puntos.add(new Coordenada(getX(i), getY(i)));
 				}
 				
 				BufferedImage imagen = getPadre().getImagen();
-				getPadre().getPadre().mostrarImagen(Operaciones.transormacionLineal(imagen, tramos));
+				
+				getPadre().getPadre().mostrarImagen(Operaciones.transformacionLinealB(imagen, puntos));
+				//getPadre().getPadre().mostrarImagen(Operaciones.transformacionLineal(imagen, tramos));
 
 			}
 		});
@@ -103,7 +110,7 @@ public class VentanaTransformacionLineal extends VentanaSecundaria {
 
 	public void setVisibilidad() {
 		for (int i = 0; i < 10; i++) {
-			if (i < tramos) {
+			if (i <= tramos) {
 				arrayLabel.get(i).setVisible(true);;
 				arrayX.get(i).setVisible(true);
 				arrayY.get(i).setVisible(true);

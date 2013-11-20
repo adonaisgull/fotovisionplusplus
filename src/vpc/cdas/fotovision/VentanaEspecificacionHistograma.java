@@ -11,16 +11,14 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
-public class VentanaCompararImagenes extends VentanaSecundaria {
-
+public class VentanaEspecificacionHistograma extends VentanaSecundaria {
 	private static final long serialVersionUID = 1L;
 	private static final int ANCHO = 450;
 	private static final int ALTO = 80;
 	
 	private JComboBox<String> combo;
-	private JTextField umbral;
 
-	public VentanaCompararImagenes(VentanaImagen padre) {
+	public VentanaEspecificacionHistograma(VentanaImagen padre) {
 		
 		super(padre, "Comparar imágenes", ANCHO, ALTO);
 		
@@ -39,10 +37,6 @@ public class VentanaCompararImagenes extends VentanaSecundaria {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				
-				int umbral = Integer.parseInt(getUmbral().getText());
-				if (umbral < 0) umbral = 0;
-				if (umbral > 255) umbral = 255;
-				
 				BufferedImage otraImagen = null;
 				
 				ArrayList<VentanaImagen> ventanas = getPadre().getPadre().getVentanasImagen();	
@@ -52,22 +46,18 @@ public class VentanaCompararImagenes extends VentanaSecundaria {
 					}
 				}
 				
-				BufferedImage imagen = Operaciones.compararImagenes(getPadre().getImagen(), otraImagen, umbral);
+				// Cambiar llamada
+				BufferedImage imagen = null; /* = Operaciones.compararImagenes(getPadre().getImagen(), otraImagen, umbral);*/
 				getPadre().getPadre().mostrarImagen(imagen);
 				
 			}
 		});
 		
-		JTextField campoUmbral = new JTextField(3);
-		
 		setLayout(new FlowLayout());
-		getContentPane().add(new JLabel("Comparar '" + getPadre().getTitle() + "' con: "));
+		getContentPane().add(new JLabel("Transformar histograma de '" + getPadre().getTitle() + "' en : "));
 		getContentPane().add(combo);
-		getContentPane().add(new JLabel("Valor: "));
-		getContentPane().add(campoUmbral);
 		getContentPane().add(boton);
 		
-		setUmbral(campoUmbral);
 		setCombo(combo);
 	}
 
@@ -78,13 +68,4 @@ public class VentanaCompararImagenes extends VentanaSecundaria {
 	public void setCombo(JComboBox<String> combo) {
 		this.combo = combo;
 	}
-
-	public JTextField getUmbral() {
-		return umbral;
-	}
-
-	public void setUmbral(JTextField umbral) {
-		this.umbral = umbral;
-	}
-	
 }

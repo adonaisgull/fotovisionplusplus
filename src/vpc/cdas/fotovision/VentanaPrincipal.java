@@ -69,10 +69,12 @@ public class VentanaPrincipal extends JFrame {
 
 			} catch (IOException e) { }
 		}
-
-		// Convertimos a escala de grises
-		imagen = Operaciones.escalaDeGrisesPAL(imagen);
-		mostrarImagen(imagen);
+		
+		if (imagen != null) {
+			// Convertimos a escala de grises y mostramos
+			imagen = Operaciones.escalaDeGrisesPAL(imagen);
+			mostrarImagen(imagen);
+		}
 	}
 	
 	private void guardarImagen() {
@@ -183,6 +185,19 @@ public class VentanaPrincipal extends JFrame {
 		VentanaSecundaria ventana = new VentanaCompararImagenes(getVentanasImagen().get(getVentanaActual()));
 		ventana.setVisible(true);
 	}
+	
+	public void imagenDiferencia() {
+		
+		VentanaSecundaria ventana = new VentanaImagenDiferencia(getVentanasImagen().get(getVentanaActual()));
+		ventana.setVisible(true);
+	}
+
+	public void especificacionHistograma() {
+		
+		VentanaSecundaria ventana = new VentanaEspecificacionHistograma(getVentanasImagen().get(getVentanaActual()));
+		ventana.setVisible(true);
+	}
+	
 
 	private void initComponents() {
 
@@ -310,6 +325,22 @@ public class VentanaPrincipal extends JFrame {
 			}
 		});
 		
+		JMenuItem accionImagenDiferencia = new JMenuItem("Imagen diferencia");
+		accionImagenDiferencia.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				imagenDiferencia();
+			}
+		});
+		
+		JMenuItem accionEspecificacionHistograma = new JMenuItem("Especificación histograma");
+		accionEspecificacionHistograma.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				especificacionHistograma();
+			}
+		});
+		
 
 		// Añadimos las opciones a cada seccion
 
@@ -333,7 +364,11 @@ public class VentanaPrincipal extends JFrame {
 		// No lineales
 		transformacionesMenu.add(accionEcualizacionHistograma);
 		transformacionesMenu.add(accionCorrecionGamma);
+		transformacionesMenu.add(new JSeparator());
 		transformacionesMenu.add(accionCompararImagenes);
+		transformacionesMenu.add(accionImagenDiferencia);
+		transformacionesMenu.add(new JSeparator());
+		transformacionesMenu.add(accionEspecificacionHistograma);
 
 		// Añadimos las secciones a la barra de menú
 		barraPrincipal.add(archivoMenu);
@@ -384,7 +419,9 @@ public class VentanaPrincipal extends JFrame {
 					for (int i = 0; i < getVentanasImagen().size(); i++)
 						getVentanasImagen().get(i).setMostrarGuias(false);
 				}
-				getVentanasImagen().get(getVentanaActual()).toFront();
+				
+				if (getVentanasImagen().size() > 0)
+					getVentanasImagen().get(getVentanaActual()).toFront();
 			}
 		});
 		
