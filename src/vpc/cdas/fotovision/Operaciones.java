@@ -157,65 +157,6 @@ public class Operaciones {
 
 		return copia;
 	}
-	/**
-	 * Crea una copia de la imagen recibida (BufferedImage) y le aplica un transformación lineal por tramos.
-	 * @param imagen - Objeto BufferedImage.
-	 * @param tramos - Objeto Tramos que se utilizarán para la transformación.
-	 * @return Copia con la tranformación aplicada.
-	 */
-	public static BufferedImage transformacionLineal(final BufferedImage imagen, Tramos tramos) {
-
-		BufferedImage copia = clona(imagen);
-		LookUpTable lut = new LookUpTable();
-
-		//calculamos la look up table apartir de cada tramo
-		for (int i = 1; i < tramos.getNumTramos(); i++) {
-			//pedimos el punto del tramo actual
-			int tramo[] = tramos.getTramo(i);
-			//pedimos el punto del tramo anterior
-			int tramo_anterior[] = tramos.getTramo(i - 1);
-			double dividendo = tramo[1] - tramo_anterior[1];
-			double divisor = tramo[0] - tramo_anterior[0];
-			//caso general en el que existe pendiente y no es horizontal ni vertical
-			if (((dividendo) != 0) && ((divisor) != 0)) {
-				//calculo de la pendiente de la recta
-				double m = dividendo / divisor;
-				//calculo de la constante de la recta
-				double c = tramo[1] - m * tramo[0];
-				//este bucle calcula el Vout
-				for (int j = tramo_anterior[1]; j < tramo[1]; j++) {
-					//el calculo se realiza mediante la formula de la recta
-					double resultado = m * j + c;
-					if (resultado > 255) {
-						resultado = 255;
-					} else if (resultado < 0) {
-						resultado = 0;
-					}
-					int res = (int) Math.round(resultado);
-					lut.setValor(j, res);
-				}
-				//caso en el que la pendiente es cero
-			} else if (((dividendo) == 0) && ((divisor) != 0)) {
-				lut.setValor(tramo[1], tramo[0]);
-				//caso en el que la pendiente es infinito
-			} else if (((dividendo) != 0) && ((divisor) == 0)) {
-				for (int j = tramo_anterior[1]; j < tramo[1]; j++) {
-					lut.setValor(j, tramo[0]);
-				}
-			}
-		}
-
-		for (int x = 0; x < copia.getWidth(); x++) {
-			for (int y = 0; y < copia.getHeight(); y++) {
-				Color color = new Color(copia.getRGB(x, y));
-				int Vin = color.getRed();
-				int Vout = lut.getValor(Vin);
-				copia.setRGB(x, y, new Color(Vout, Vout, Vout).getRGB());
-			}
-		}
-
-		return copia;
-	}
 
 	/**
 	 * Calcula el brillo (double) de la imagen (BufferedImage) recibida.
@@ -282,10 +223,10 @@ public class Operaciones {
 
 		ArrayList<Double> histograma = new ArrayList<Double>();
 		double pixels = imagen.getWidth() * imagen.getHeight();
-		LookUpTable lut = calcularHistograma(imagen);
+		ArrayList<Integer> histogramaInt = histogramaAcu(imagen);
 
-		for (int i = 0; i < lut.getSize(); i++) {
-			histograma.add((double) lut.getValor(i) / pixels);
+		for (int i = 0; i < histogramaInt.size(); i++) {
+			histograma.add((double) histogramaInt.get(i) / pixels);
 		}
 
 		return histograma;
@@ -297,9 +238,6 @@ public class Operaciones {
 	 * @return ArrayList con la frecuencia relativa de los niveles de grises.
 	 */
 	public static ArrayList<Integer> histogramaAbs(final BufferedImage imagen) {
-
-
-		histogramaNormalizado(imagen);
 
 		ArrayList<Integer> histograma = new ArrayList<Integer>();
 		LookUpTable lut = calcularHistograma(imagen);
@@ -484,36 +422,47 @@ public class Operaciones {
 		return copia;
 	}
 
+	/**
+	 * Modifica la distribucion de grises de la imagen original a partir de la imagen referencia
+	 * @param original
+	 * @param referencia
+	 * @return
+	 */
 	public static BufferedImage especificacion(BufferedImage original, BufferedImage referencia) {
 		
 		BufferedImage copia = clona(original);
 		ArrayList<Double> pOrigin = histogramaNormalizado(original);
 		ArrayList<Double> pRefer = histogramaNormalizado(referencia);
-		int[] T = new int[PIXELS];
-		int j;
-		int M = PIXELS;
 		
-		for (int a = 0; a < M; a++) {
-			j = M - 1;
+		LookUpTable lut = new LookUpTable(0);
+		
+		int j;
+		for (int a = 0; a < lut.getSize(); a++) {
+			j = lut.getSize() - 1;
 			do {
-				T[a] = j;
+				lut.setValor(a, j);
 				j--;
-
-			} while(j >= 0 && pOrigin.get(a) <= pRefer.get(j));
+				
+			} while(j >= 0 && pOrigin.get(a).doubleValue() <= pRefer.get(j).doubleValue());
+			
 		}
 		
 		for (int x = 0; x < copia.getWidth(); x++) {
 			for (int y = 0; y < copia.getHeight(); y++) {
 				Color color = new Color(original.getRGB(x, y));
-				int Vin = color.getRed();
-				int Vout = T[Vin];
-				
-				copia.setRGB(x, y, new Color(Vout, Vout, Vout).getRGB());
+				int gris = lut.getValor(color.getRed());
+				copia.setRGB(x, y, new Color(gris, gris, gris).getRGB());
 			}
 		}
 		return copia;
 	}
 
+	/**
+	 * Calcula la imagen diferencia entre la imagen1 y la imagen2
+	 * @param imagen1
+	 * @param imagen2
+	 * @return
+	 */
 	public static BufferedImage imagenDiferencia(BufferedImage imagen1, BufferedImage imagen2) {
 
 		BufferedImage imagenDiferencia = new BufferedImage(imagen1.getWidth(), imagen1.getHeight(), imagen1.getType());
