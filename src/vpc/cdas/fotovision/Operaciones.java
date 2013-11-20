@@ -12,6 +12,7 @@ public class Operaciones {
 	static final double PAL_RED = 0.222;
 	static final double PAL_GREEN = 0.707;
 	static final double PAL_BLUE = 0.071;
+	static final int PIXELS = 256;
 
 	/**
 	 * Realiza una copia del objeto BufferedImage recibido
@@ -25,7 +26,7 @@ public class Operaciones {
 
 		return copia;
 	}
-	
+
 	/**
 	 * Genera una imagen a partir de la porición de la imagen origen. La porción la delimitan los dos puntos
 	 * que recibe como parámetros.
@@ -67,7 +68,7 @@ public class Operaciones {
 			}
 			x2++;
 		}
-		
+
 		return nueva;
 	}
 
@@ -116,36 +117,36 @@ public class Operaciones {
 
 		return copia;
 	}
-	
+
 	public static BufferedImage transformacionLinealB(final BufferedImage imagen, ArrayList<Coordenada> coordenadas) {
-		
+
 		double vout;
 		Coordenada a, b;
 		double m;
-		
+
 		// Construimos la lookuptable
 		LookUpTable lut = new LookUpTable(0);
 		for (int i = 0; i < coordenadas.size() - 1; i++) {
 			a = coordenadas.get(i);
 			b = coordenadas.get(i + 1);	
 			m = (double) (b.getY() - a.getY()) / (double) (b.getX() - a.getX());
-			
+
 			for (int j = a.getX(); j <= b.getX(); j++) {
-				
+
 				if (m == 0) {
 					vout = a.getY();
 				}
-				
+
 				vout = m * j - m * a.getX() + a.getY();
-				
+
 				//System.out.println("j: " + j);
-				
+
 				lut.setValor(j, (int) vout);
 			}	
 		}
-		
+
 		BufferedImage copia = clona(imagen);
-		
+
 		for (int x = 0; x < copia.getWidth(); x++) {
 			for (int y = 0; y < copia.getHeight(); y++) {
 				Color color = new Color(copia.getRGB(x, y));
@@ -153,7 +154,7 @@ public class Operaciones {
 				copia.setRGB(x, y, new Color(gris, gris, gris).getRGB());
 			}
 		}
-		
+
 		return copia;
 	}
 	/**
@@ -225,13 +226,13 @@ public class Operaciones {
 		double nu = 0;
 		double size = imagen.getWidth() * imagen.getHeight();
 		LookUpTable lut = calcularHistograma(imagen);
-		
+
 		for (int i = 0; i < lut.getSize(); i++) {
 			double h = lut.getValor(i);
 			nu = nu + (h * i);
 		}
 		nu = nu / size;
-		
+
 		return nu;
 	}
 
@@ -245,13 +246,13 @@ public class Operaciones {
 		double nu = getBrillo(imagen);
 		double size = imagen.getWidth() * imagen.getHeight();
 		LookUpTable lut = calcularHistograma(imagen);
-		
+
 		for (int i = 0; i < lut.getSize(); i++) {
 			double y = i;
 			double h = lut.getValor(i);
 			delta = delta + (h * Math.pow((y - nu), 2));
 		}
-		
+
 		delta = delta / size;
 		delta = Math.sqrt(delta);
 		return delta;
@@ -266,27 +267,27 @@ public class Operaciones {
 		double E = 0;
 		double size = imagen.getWidth() * imagen.getHeight();
 		LookUpTable lut = calcularHistograma(imagen);
-		
+
 		for (int i = 0; i < lut.getSize(); i++) {
 			double h = lut.getValor(i);
 			double p = h / size;
 			if (p!= 0)
 				E = E + (p * (Math.log10(p) / Math.log10(2)));
 		}
-		
+
 		return E;
 	}
-	
+
 	public static ArrayList<Double> histogramaNormalizado(final BufferedImage imagen) {
-		
+
 		ArrayList<Double> histograma = new ArrayList<Double>();
 		double pixels = imagen.getWidth() * imagen.getHeight();
 		LookUpTable lut = calcularHistograma(imagen);
-		
+
 		for (int i = 0; i < lut.getSize(); i++) {
 			histograma.add((double) lut.getValor(i) / pixels);
 		}
-		
+
 		return histograma;
 	}
 
@@ -297,9 +298,9 @@ public class Operaciones {
 	 */
 	public static ArrayList<Integer> histogramaAbs(final BufferedImage imagen) {
 
-		
+
 		histogramaNormalizado(imagen);
-		
+
 		ArrayList<Integer> histograma = new ArrayList<Integer>();
 		LookUpTable lut = calcularHistograma(imagen);
 
@@ -362,9 +363,9 @@ public class Operaciones {
 	 * @return Se retorna un LookUpTable donde se guarda los contadores de cada pixel.
 	 */
 	public static LookUpTable calcularHistograma(BufferedImage imagen) {
-		
+
 		LookUpTable lut = new LookUpTable(0);	// Inicializamos una LookUpTable inicializada a 0
-		
+
 		for (int x = 0; x < imagen.getWidth(); x++) {
 			for (int y = 0; y < imagen.getHeight(); y++) {
 				Color color = new Color(imagen.getRGB(x, y));
@@ -388,7 +389,7 @@ public class Operaciones {
 		double A = contraste / contraste_actual;
 		double B = brillo - (A * brillo_actual);
 		LookUpTable lut = new LookUpTable();
-		
+
 		for (double x = 0; x < lut.getSize(); x++) {
 			double Vout = A * x + B;
 			if (Vout < 0) {
@@ -396,11 +397,11 @@ public class Operaciones {
 			} else if (Vout > 255) {
 				Vout = 255;
 			}
-			
+
 			int valor = (int) Math.round(Vout);
 			lut.setValor((int) x, valor);
 		}
-		
+
 		for (int x = 0; x < copia.getWidth(); x++) {
 			for (int y = 0; y < copia.getHeight(); y++) {
 				Color color = new Color(copia.getRGB(x, y));
@@ -409,7 +410,7 @@ public class Operaciones {
 				copia.setRGB(x, y, new Color(Vout, Vout, Vout).getRGB());
 			}
 		}
-		
+
 		return copia;
 	}
 
@@ -425,7 +426,7 @@ public class Operaciones {
 	 */
 	public static BufferedImage compararImagenes(BufferedImage imagen1, BufferedImage imagen2, int t) {
 		BufferedImage copia = clona(imagen1);
-		
+
 		for (int x = 0; x < copia.getWidth(); x++) {
 			for (int y = 0; y < copia.getHeight(); y++) {
 				Color color1 = new Color(imagen1.getRGB(x, y));
@@ -441,7 +442,7 @@ public class Operaciones {
 				}
 			}
 		}
-		
+
 		return copia;
 	}
 
@@ -482,23 +483,53 @@ public class Operaciones {
 		}
 		return copia;
 	}
-	
+
+	public static BufferedImage especificacion(BufferedImage original, BufferedImage referencia) {
+		
+		BufferedImage copia = clona(original);
+		ArrayList<Double> pOrigin = histogramaNormalizado(original);
+		ArrayList<Double> pRefer = histogramaNormalizado(referencia);
+		int[] T = new int[PIXELS];
+		int j;
+		int M = PIXELS;
+		
+		for (int a = 0; a < M; a++) {
+			j = M - 1;
+			do {
+				T[a] = j;
+				j--;
+
+			} while(j >= 0 && pOrigin.get(a) <= pRefer.get(j));
+		}
+		
+		for (int x = 0; x < copia.getWidth(); x++) {
+			for (int y = 0; y < copia.getHeight(); y++) {
+				Color color = new Color(original.getRGB(x, y));
+				int Vin = color.getRed();
+				int Vout = T[Vin];
+				
+				copia.setRGB(x, y, new Color(Vout, Vout, Vout).getRGB());
+			}
+		}
+		return copia;
+	}
+
 	public static BufferedImage imagenDiferencia(BufferedImage imagen1, BufferedImage imagen2) {
-		
+
 		BufferedImage imagenDiferencia = new BufferedImage(imagen1.getWidth(), imagen1.getHeight(), imagen1.getType());
-		
+
 		for (int x = 0; x < imagenDiferencia.getWidth(); x++) {
 			for (int y = 0; y < imagenDiferencia.getHeight(); y++) {
-				
+
 				Color color1 = new Color(imagen1.getRGB(x, y));
 				Color color2 = new Color(imagen2.getRGB(x, y));
-				
+
 				int color = Math.abs(color1.getRed() - color2.getRed());
-				
+
 				imagenDiferencia.setRGB(x, y, new Color(color, color, color).getRGB());
 			}
 		}
-		
+
 		return imagenDiferencia;
 	}
 

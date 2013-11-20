@@ -31,7 +31,7 @@ public class VentanaEspecificacionHistograma extends VentanaSecundaria {
 			}
 		}
 		
-		JButton boton = new JButton("Comparar");
+		JButton boton = new JButton("Aplicar");
 		boton.addActionListener(new ActionListener() {
 			
 			@Override
@@ -47,7 +47,7 @@ public class VentanaEspecificacionHistograma extends VentanaSecundaria {
 				}
 				
 				// Cambiar llamada
-				BufferedImage imagen = null; /* = Operaciones.compararImagenes(getPadre().getImagen(), otraImagen, umbral);*/
+				BufferedImage imagen = Operaciones.especificacion(getPadre().getImagen(), otraImagen);
 				getPadre().getPadre().mostrarImagen(imagen);
 				
 			}
