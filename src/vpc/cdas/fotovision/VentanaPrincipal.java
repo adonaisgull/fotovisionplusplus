@@ -198,6 +198,29 @@ public class VentanaPrincipal extends JFrame {
 		ventana.setVisible(true);
 	}
 	
+	public void voltearHorizontal() {
+		
+		BufferedImage imagen = Operaciones.voltearHorizontal(getVentanasImagen().get(getVentanaActual()).getImagen());
+		mostrarImagen(imagen);
+	}
+	
+	public void voltearVertical() {
+		
+		BufferedImage imagen = Operaciones.voltearVertical(getVentanasImagen().get(getVentanaActual()).getImagen());
+		mostrarImagen(imagen);
+	}
+	
+	public void imagenTraspuesta() {
+		
+		BufferedImage imagen = Operaciones.imagenTraspuesta(getVentanasImagen().get(getVentanaActual()).getImagen());
+		mostrarImagen(imagen);
+	}
+	
+	public void rotarImagen(int angulo) {
+		
+		BufferedImage imagen = Operaciones.rotarImagen(getVentanasImagen().get(getVentanaActual()).getImagen(), angulo);
+		mostrarImagen(imagen);
+	}
 
 	private void initComponents() {
 
@@ -341,7 +364,85 @@ public class VentanaPrincipal extends JFrame {
 			}
 		});
 		
-
+		// TRASNFORMACIONES
+		
+		JMenu submenuTransformaciones = new JMenu("Transformaciones");
+		
+		JMenuItem accionVoltearHorizontal = new JMenuItem("Voltear Horizontal");
+		accionVoltearHorizontal.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				voltearHorizontal();
+			}
+		});
+		
+		JMenuItem accionVoltearVertical = new JMenuItem("Voltear Vertical");
+		accionVoltearVertical.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				voltearVertical();
+			}
+		});
+		
+		JMenuItem accionImagenTraspuesta = new JMenuItem("Imagen Traspuesta");
+		accionImagenTraspuesta.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				imagenTraspuesta();
+			}
+		});
+		
+		JMenuItem accionRotar90SH = new JMenuItem("Rotar 90º SH");
+		accionRotar90SH.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				rotarImagen(Operaciones.SH_90);
+			}
+		});
+		
+		JMenuItem accionRotar90SAH = new JMenuItem("Rotar 90º SAH");
+		accionRotar90SAH.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				rotarImagen(Operaciones.SAH_90);
+			}
+		});
+		
+		JMenuItem accionRotar180 = new JMenuItem("Rotar 180º");
+		accionRotar180.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				rotarImagen(Operaciones.SH_180);
+			}
+		});
+		
+		JMenuItem accionRotar270SH = new JMenuItem("Rotar 270º SH");
+		accionRotar270SH.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				rotarImagen(Operaciones.SH_270);
+			}
+		});
+		
+		JMenuItem accionRotar270SAH = new JMenuItem("Rotar 270º SAH");
+		accionRotar270SAH.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				rotarImagen(Operaciones.SAH_270);
+			}
+		});
+		
+		
+		submenuTransformaciones.add(accionVoltearHorizontal);
+		submenuTransformaciones.add(accionVoltearVertical);
+		submenuTransformaciones.add(accionImagenTraspuesta);
+		submenuTransformaciones.add(new JSeparator());
+		submenuTransformaciones.add(accionRotar90SH);
+		submenuTransformaciones.add(accionRotar90SAH);
+		submenuTransformaciones.add(accionRotar180);
+		submenuTransformaciones.add(accionRotar270SH);
+		submenuTransformaciones.add(accionRotar270SAH);
+		
 		// Añadimos las opciones a cada seccion
 
 		archivoMenu.add(accionAbrir);
@@ -369,6 +470,8 @@ public class VentanaPrincipal extends JFrame {
 		transformacionesMenu.add(accionImagenDiferencia);
 		transformacionesMenu.add(new JSeparator());
 		transformacionesMenu.add(accionEspecificacionHistograma);
+		transformacionesMenu.add(new JSeparator());
+		transformacionesMenu.add(submenuTransformaciones);
 
 		// Añadimos las secciones a la barra de menú
 		barraPrincipal.add(archivoMenu);

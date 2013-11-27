@@ -95,7 +95,7 @@ public class VentanaTransformacionLineal extends VentanaSecundaria {
 				
 				BufferedImage imagen = getPadre().getImagen();
 				
-				getPadre().getPadre().mostrarImagen(Operaciones.transformacionLinealB(imagen, puntos));
+				getPadre().getPadre().mostrarImagen(Operaciones.transformacionLineal(imagen, puntos));
 				//getPadre().getPadre().mostrarImagen(Operaciones.transformacionLineal(imagen, tramos));
 
 			}

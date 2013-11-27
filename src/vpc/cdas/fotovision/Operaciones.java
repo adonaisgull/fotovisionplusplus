@@ -6,13 +6,20 @@ import java.util.ArrayList;
 
 public class Operaciones {
 
-	static final double NTSC_RED = 0.229;
-	static final double NTSC_GREEN = 0.587;
-	static final double NTSC_BLUE = 0.114;
-	static final double PAL_RED = 0.222;
-	static final double PAL_GREEN = 0.707;
-	static final double PAL_BLUE = 0.071;
-	static final int PIXELS = 256;
+	private static final double NTSC_RED = 0.229;
+	private static final double NTSC_GREEN = 0.587;
+	private static final double NTSC_BLUE = 0.114;
+	private static final double PAL_RED = 0.222;
+	private static final double PAL_GREEN = 0.707;
+	private static final double PAL_BLUE = 0.071;
+	private static final int PIXELS = 256;
+	public static final int SH = 1;
+	public static final int SAH = 2;
+	public static final int SH_90 = 1;
+	public static final int SAH_90 = 2;
+	public static final int SH_180 = 3;
+	public static final int SH_270 = 4;
+	public static final int SAH_270 = 5;
 
 	/**
 	 * Realiza una copia del objeto BufferedImage recibido
@@ -117,8 +124,102 @@ public class Operaciones {
 
 		return copia;
 	}
+	
+	public static BufferedImage voltearHorizontal(final BufferedImage imagen) {
+		
+		BufferedImage volteada = new BufferedImage(imagen.getWidth(), imagen.getHeight(), imagen.getType());
+		
+		int xv = imagen.getWidth() - 1;
+		for (int x = 0; x < imagen.getWidth(); x++){
+			for (int y = 0; y < imagen.getHeight(); y++) {
+				volteada.setRGB(xv, y, imagen.getRGB(x, y));				
+			}
+			xv--;
+		}
+		
+		return volteada;
+	}
 
-	public static BufferedImage transformacionLinealB(final BufferedImage imagen, ArrayList<Coordenada> coordenadas) {
+	public static BufferedImage voltearVertical(final BufferedImage imagen) {
+		
+		BufferedImage volteada = new BufferedImage(imagen.getWidth(), imagen.getHeight(), imagen.getType());
+		
+		int yv = imagen.getHeight() - 1;
+		for (int y = 0; y < imagen.getHeight(); y++) {
+			for (int x = 0; x < imagen.getWidth(); x++){
+				volteada.setRGB(x, yv, imagen.getRGB(x, y));				
+			}
+			yv--;
+		}
+		
+		return volteada;
+	}
+	
+	public static BufferedImage imagenTraspuesta(final BufferedImage imagen) {
+		
+		BufferedImage traspuesta = new BufferedImage(imagen.getHeight(), imagen.getWidth(), imagen.getType());
+		
+		for (int x = 0; x < imagen.getWidth(); x++) {
+			for (int y = 0; y < imagen.getHeight(); y++){
+				traspuesta.setRGB(y, x, imagen.getRGB(x, y));				
+			}
+		}
+		
+		return traspuesta;
+	}
+	
+	public static BufferedImage rotar90(final BufferedImage imagen, int sentido) {
+		
+		BufferedImage rotada = new BufferedImage(imagen.getHeight(), imagen.getWidth(), imagen.getType());
+		
+		
+		if (sentido == SH) {
+			int yr = imagen.getHeight() - 1;
+			for (int y = 0; y < imagen.getHeight(); y++){
+				for (int x = 0; x < imagen.getWidth(); x++) {
+					rotada.setRGB(yr, x, imagen.getRGB(x, y));				
+				}
+				yr--;
+			}
+		}
+		else {
+			for (int y = 0; y < imagen.getHeight(); y++){
+				for (int x = 0; x < imagen.getWidth(); x++) {
+					rotada.setRGB(y, x, imagen.getRGB(x, y));				
+				}
+			}
+		}
+		
+		return rotada;
+		
+	}
+	
+	public static BufferedImage rotarImagen(final BufferedImage imagen, final int angulo) {
+		
+		BufferedImage rotada = null;
+		
+		switch (angulo) {
+		case SH_90:
+			rotada = rotar90(imagen, SH);
+			break;
+		case SAH_90:
+			rotada = rotar90(imagen, SAH);
+			break;
+		case SH_180:
+			rotada = rotar90(rotar90(imagen, SH), SH);
+			break;
+		case SH_270:
+			rotada = rotar90(rotar90(rotar90(imagen, SH), SH), SH);
+			break;
+		case SAH_270:
+			rotada = rotar90(rotar90(rotar90(imagen, SAH), SAH), SAH);
+			break;
+		}
+		
+		return rotada;
+	}
+	
+	public static BufferedImage transformacionLineal(final BufferedImage imagen, ArrayList<Coordenada> coordenadas) {
 
 		double vout;
 		Coordenada a, b;
