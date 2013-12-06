@@ -35,6 +35,7 @@ public class VentanaBrilloContraste extends VentanaSecundaria {
 				getEtiquetaBrillo().setText(getCampoBrillo().getValue() + "");
 			}
 		});
+		
 		setCampoBrillo(campoBrillo);
 		
 		// Slider para el contraste

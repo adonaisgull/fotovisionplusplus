@@ -20,6 +20,8 @@ public class Operaciones {
 	public static final int SH_180 = 3;
 	public static final int SH_270 = 4;
 	public static final int SAH_270 = 5;
+	public static final int INT_VMP = 1;
+	public static final int INT_BL = 2;
 
 	/**
 	 * Realiza una copia del objeto BufferedImage recibido
@@ -607,5 +609,94 @@ public class Operaciones {
 			}
 		}
 		return copia;
+	}
+	
+	
+	public static int interpolacionVMP(BufferedImage imagen, double x, double y) {
+		
+		// Calculamos las cuatro coordenadas enteras envolventes
+		ArrayList<Coordenada> envolventes = new ArrayList<Coordenada>();
+		envolventes.add(new Coordenada((int) x, (int) y));
+		envolventes.add(new Coordenada((int) x + 1, (int) y));
+		envolventes.add(new Coordenada((int) x, (int) y + 1));
+		envolventes.add(new Coordenada((int) x + 1, (int) y + 1));
+		
+		ArrayList<Double> distancias = new ArrayList<Double>();
+		for (int i = 0; i < envolventes.size(); i++) {
+			distancias.add(Math.sqrt(Math.pow((double) envolventes.get(i).getX() - x, 2) + Math.pow((double) envolventes.get(i).getY() - y, 2)));			
+		}
+		
+		double min = distancias.get(0);
+		int j = 0;
+		for (int i = 1; i < distancias.size(); i++)
+			if (distancias.get(i) < min) {
+				min = distancias.get(i);
+				j = i;
+			}
+		
+		Color color = new Color(imagen.getRGB(envolventes.get(j).getX(), envolventes.get(j).getY()));
+		
+		return color.getRed();
+	}
+	
+	public static int interpolacionBL(BufferedImage imagen, double x, double y) {
+		
+		// Calculamos las cuatro coordenadas enteras envolventes
+		Coordenada a = new Coordenada((int) x, (int) y);
+		Coordenada b = new Coordenada((int) x + 1, (int) y);
+		Coordenada c = new Coordenada((int) x, (int) y + 1);
+		Coordenada d = new Coordenada((int) x + 1, (int) y + 1);
+		
+		if (b.getX() >= imagen.getWidth()) b.setX(imagen.getWidth() - 1);
+		if (c.getY() >= imagen.getHeight()) c.setY(imagen.getHeight() - 1);
+		if (d.getX() >= imagen.getWidth()) d.setX(imagen.getWidth() - 1);
+		if (d.getY() >= imagen.getHeight()) d.setY(imagen.getHeight() - 1);
+		
+		double q = Math.abs((double) c.getY() - y);
+		double p = Math.abs((double) x - c.getX());
+		
+		int grisA = new Color(imagen.getRGB(a.getX(), a.getY())).getRed();
+		int grisB = new Color(imagen.getRGB(b.getX(), b.getY())).getRed();
+		int grisC = new Color(imagen.getRGB(c.getX(), c.getY())).getRed();
+		int grisD = new Color(imagen.getRGB(d.getX(), d.getY())).getRed();
+		
+		double gris = grisC + (grisD - grisC) * p + (grisA - grisC) * q + (grisB + grisC - grisA - grisD) * p * q;
+		
+		return (int) Math.round(gris);
+	}
+	
+	/**
+	 * 
+	 * @param imagen
+	 * @param ancho
+	 * @param alto
+	 * @param interpolacion
+	 * @return
+	 */
+	public static BufferedImage escalar(BufferedImage imagen, int ancho, int alto, int interpolacion) {
+		
+		BufferedImage nueva = new BufferedImage(ancho, alto, imagen.getType());
+		double factorEscaladoX = (double) imagen.getWidth() / (double) nueva.getWidth();
+		double factorEscaladoY = (double) imagen.getHeight() / (double) nueva.getHeight();
+		
+		if (interpolacion == INT_VMP) {
+			for (int x = 0; x < nueva.getWidth(); x++) {
+				for (int y = 0; y < nueva.getHeight(); y++) {
+					int gris = interpolacionVMP(imagen, (double) x * factorEscaladoX, (double) y * factorEscaladoY);
+					nueva.setRGB(x, y, new Color(gris, gris, gris).getRGB());
+				}
+			}
+		}
+		
+		if (interpolacion == INT_BL) {
+			for (int x = 0; x < nueva.getWidth(); x++) {
+				for (int y = 0; y < nueva.getHeight(); y++) {
+					int gris = interpolacionBL(imagen, (double) x * factorEscaladoX, (double) y * factorEscaladoY);
+					nueva.setRGB(x, y, new Color(gris, gris, gris).getRGB());
+				}
+			}
+		}
+		
+		return nueva;
 	}
 }

@@ -221,6 +221,13 @@ public class VentanaPrincipal extends JFrame {
 		BufferedImage imagen = Operaciones.rotarImagen(getVentanasImagen().get(getVentanaActual()).getImagen(), angulo);
 		mostrarImagen(imagen);
 	}
+	
+	public void escalarImagen() {
+		
+		BufferedImage imagen = getVentanasImagen().get(getVentanaActual()).getImagen();
+		VentanaSecundaria ventana = new VentanaEscalado(getVentanasImagen().get(getVentanaActual()), imagen);
+		ventana.setVisible(true);
+	}
 
 	private void initComponents() {
 
@@ -432,6 +439,14 @@ public class VentanaPrincipal extends JFrame {
 			}
 		});
 		
+		JMenuItem accionEscalar = new JMenuItem("Escalar");
+		accionEscalar.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				escalarImagen();
+			}
+		});
+		
 		
 		submenuTransformaciones.add(accionVoltearHorizontal);
 		submenuTransformaciones.add(accionVoltearVertical);
@@ -442,6 +457,8 @@ public class VentanaPrincipal extends JFrame {
 		submenuTransformaciones.add(accionRotar180);
 		submenuTransformaciones.add(accionRotar270SH);
 		submenuTransformaciones.add(accionRotar270SAH);
+		submenuTransformaciones.add(new JSeparator());
+		submenuTransformaciones.add(accionEscalar);
 		
 		// Añadimos las opciones a cada seccion
 
